@@ -9,7 +9,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #09090b; color: #fafafa; }
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
@@ -20,12 +20,28 @@
         .progress-bar { height: 8px; background: #27272a; border-radius: 10px; overflow: hidden; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, #8b5cf6, #d946ef); border-radius: 10px; transition: width 0.3s; }
         .spotify-card { background: linear-gradient(145deg, rgba(29, 185, 84, 0.1) 0%, rgba(24, 24, 27, 0.8) 100%); border: 1px solid rgba(29, 185, 84, 0.3); }
-        .spotify-card:hover { border-color: rgba(29, 185, 84, 0.5); }
         .glow-green { box-shadow: 0 0 40px rgba(29, 185, 84, 0.15); }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .animate-pulse-slow { animation: pulse 2s ease-in-out infinite; }
         .spotify-green { color: #1DB954; }
-        .bg-spotify { background-color: #1DB954; }
+        
+        /* Calendar styles */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .calendar-day { min-height: 80px; background: #18181b; border-radius: 8px; padding: 8px; position: relative; }
+        .calendar-day.other-month { opacity: 0.3; }
+        .calendar-day.today { border: 2px solid #8b5cf6; }
+        .calendar-day.release-day { background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%); }
+        .calendar-day.has-task { background: #1f1f23; }
+        .calendar-task { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 2px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .calendar-task.done { opacity: 0.5; text-decoration: line-through; }
+        
+        /* Timeline styles */
+        .timeline-container { position: relative; }
+        .timeline-line { position: absolute; left: 120px; top: 0; bottom: 0; width: 2px; background: #27272a; }
+        .timeline-item { position: relative; padding-left: 140px; padding-bottom: 20px; }
+        .timeline-dot { position: absolute; left: 114px; top: 6px; width: 14px; height: 14px; border-radius: 50%; border: 3px solid #27272a; background: #09090b; }
+        .timeline-dot.done { background: #8b5cf6; border-color: #8b5cf6; }
+        .timeline-dot.current { background: #f59e0b; border-color: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+        .timeline-dot.overdue { background: #ef4444; border-color: #ef4444; }
+        .timeline-date { position: absolute; left: 0; top: 0; width: 100px; text-align: right; font-size: 12px; color: #71717a; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
@@ -37,7 +53,7 @@
                 <div class="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center text-xl font-bold">◉</div>
                 <div>
                     <h1 class="font-bold text-sm">Creative Ownersh1p</h1>
-                    <p class="text-xs text-zinc-600">Launch Command v3</p>
+                    <p class="text-xs text-zinc-600">Launch Command v4</p>
                 </div>
             </div>
         </div>
@@ -45,12 +61,15 @@
             <button onclick="switchTab('command')" class="nav-btn active w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
                 <span>◉</span> Command Center
             </button>
+            <button onclick="switchTab('calendar')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                <span>📅</span> Calendar
+            </button>
+            <button onclick="switchTab('timeline')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                <span>📋</span> Timeline
+            </button>
             <button onclick="switchTab('spotify')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-                Spotify Analytics
-            </button>
-            <button onclick="switchTab('tasks')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
-                <span>☑</span> Timeline
+                Spotify
             </button>
             <button onclick="switchTab('splits')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
                 <span>🛡</span> IP Protection
@@ -77,7 +96,7 @@
                 </div>
                 <div class="h-8 w-px bg-zinc-800"></div>
                 <div>
-                    <p class="text-xs text-zinc-600 mb-1">Release</p>
+                    <p class="text-xs text-zinc-600 mb-1">🚀 Release Date</p>
                     <input type="date" id="releaseDate" class="bg-transparent border-none text-sm font-mono font-bold text-violet-400 p-0">
                 </div>
             </div>
@@ -88,9 +107,16 @@
             
             <!-- COMMAND CENTER -->
             <div id="command" class="tab-content active space-y-6">
-                
-                <!-- Spotify Widget -->
                 <div id="spotifyWidget"></div>
+
+                <!-- Upcoming Tasks Preview -->
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold">📅 Próximas Tareas</h3>
+                        <button onclick="switchTab('calendar')" class="text-xs text-violet-400 hover:underline">Ver calendario →</button>
+                    </div>
+                    <div id="upcomingTasks" class="space-y-2"></div>
+                </div>
 
                 <div class="grid grid-cols-4 gap-4">
                     <div class="card p-5 relative">
@@ -108,7 +134,7 @@
                         <p class="text-2xl font-bold font-mono">$<span id="budgetSpent">155</span></p>
                         <p class="text-xs text-zinc-500">de $500</p>
                     </div>
-                    <div class="card p-5" id="splitsCard">
+                    <div class="card p-5">
                         <p class="text-xs uppercase tracking-wider text-zinc-600 mb-2">Splits</p>
                         <p id="splitsTotal" class="text-2xl font-bold font-mono text-emerald-400">100%</p>
                     </div>
@@ -116,7 +142,7 @@
 
                 <div id="overdueAlert" class="card p-5 border-rose-500/30 bg-rose-500/5 hidden">
                     <p class="font-bold text-rose-400">⚠ <span id="overdueCount">0</span> tareas atrasadas</p>
-                    <button onclick="switchTab('tasks')" class="text-xs text-rose-400 hover:underline mt-2">Ver timeline →</button>
+                    <button onclick="switchTab('timeline')" class="text-xs text-rose-400 hover:underline mt-2">Ver timeline →</button>
                 </div>
 
                 <div class="card p-6">
@@ -125,182 +151,147 @@
                 </div>
             </div>
 
-            <!-- SPOTIFY ANALYTICS -->
-            <div id="spotify" class="tab-content space-y-6">
+            <!-- CALENDAR VIEW -->
+            <div id="calendar" class="tab-content space-y-6">
                 <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold">📅 Launch Calendar</h2>
                     <div class="flex items-center gap-4">
-                        <svg class="w-10 h-10 text-[#1DB954]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-                        <div>
-                            <h2 class="text-xl font-bold">Spotify Analytics</h2>
-                            <p class="text-sm text-zinc-500">Conecta tu perfil para métricas en vivo</p>
-                        </div>
-                    </div>
-                    <div id="connectionStatus" class="flex items-center gap-2">
-                        <div class="w-2 h-2 rounded-full bg-zinc-600"></div>
-                        <span class="text-xs text-zinc-500">No conectado</span>
+                        <button onclick="changeMonth(-1)" class="p-2 hover:bg-zinc-800 rounded-lg">←</button>
+                        <span id="currentMonth" class="font-bold text-lg w-40 text-center"></span>
+                        <button onclick="changeMonth(1)" class="p-2 hover:bg-zinc-800 rounded-lg">→</button>
                     </div>
                 </div>
 
-                <!-- Connection Form -->
-                <div class="spotify-card rounded-2xl p-6">
-                    <h3 class="font-bold mb-4">Conectar Perfil de Artista</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="text-xs text-zinc-500 block mb-2">Link de Spotify Artist</label>
-                            <div class="flex gap-3">
-                                <input type="text" id="spotifyLinkInput" placeholder="https://open.spotify.com/artist/..." class="flex-1">
-                                <button onclick="connectSpotify()" class="px-6 py-2 bg-[#1DB954] hover:bg-[#1ed760] rounded-xl font-bold text-black text-sm transition-all">
-                                    Conectar
-                                </button>
-                            </div>
-                            <p class="text-xs text-zinc-600 mt-2">Pega el link de tu perfil de artista de Spotify</p>
-                        </div>
+                <!-- Legend -->
+                <div class="flex items-center gap-6 text-xs">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-gradient-to-r from-violet-600 to-fuchsia-600"></div>
+                        <span class="text-zinc-500">Release Day</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-rose-500"></div>
+                        <span class="text-zinc-500">Overdue</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-amber-500"></div>
+                        <span class="text-zinc-500">This Week</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-emerald-500"></div>
+                        <span class="text-zinc-500">Completed</span>
                     </div>
                 </div>
 
-                <!-- Manual Stats Input -->
-                <div class="spotify-card rounded-2xl p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 class="font-bold">Métricas de Spotify for Artists</h3>
-                            <p class="text-xs text-zinc-500">Ingresa los datos de tu dashboard de Spotify for Artists</p>
-                        </div>
-                        <a href="https://artists.spotify.com" target="_blank" class="text-xs text-[#1DB954] hover:underline">Abrir Spotify for Artists ↗</a>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <label class="text-xs text-zinc-500 block mb-2">Monthly Listeners</label>
-                            <input type="number" id="inputMonthlyListeners" placeholder="ej: 1250" onchange="updateSpotifyStats()">
-                        </div>
-                        <div>
-                            <label class="text-xs text-zinc-500 block mb-2">Followers</label>
-                            <input type="number" id="inputFollowers" placeholder="ej: 450" onchange="updateSpotifyStats()">
-                        </div>
-                        <div>
-                            <label class="text-xs text-zinc-500 block mb-2">Streams (últimos 28 días)</label>
-                            <input type="number" id="inputStreams28" placeholder="ej: 5000" onchange="updateSpotifyStats()">
-                        </div>
-                        <div>
-                            <label class="text-xs text-zinc-500 block mb-2">Streams (últimos 7 días)</label>
-                            <input type="number" id="inputStreams7" placeholder="ej: 1200" onchange="updateSpotifyStats()">
-                        </div>
-                    </div>
+                <!-- Calendar Header -->
+                <div class="calendar-grid text-center text-xs font-bold text-zinc-500 uppercase">
+                    <div class="py-2">Dom</div>
+                    <div class="py-2">Lun</div>
+                    <div class="py-2">Mar</div>
+                    <div class="py-2">Mié</div>
+                    <div class="py-2">Jue</div>
+                    <div class="py-2">Vie</div>
+                    <div class="py-2">Sáb</div>
+                </div>
 
+                <!-- Calendar Grid -->
+                <div id="calendarGrid" class="calendar-grid"></div>
+
+                <!-- Selected Day Tasks -->
+                <div id="selectedDayTasks" class="card p-6 hidden">
+                    <h3 class="font-bold mb-4" id="selectedDayTitle">Tareas del día</h3>
+                    <div id="selectedDayTasksList" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- TIMELINE VIEW -->
+            <div id="timeline" class="tab-content space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold">📋 Launch Timeline</h2>
+                        <p class="text-sm text-zinc-500">Fechas calculadas automáticamente desde tu release date</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-zinc-500">Completadas:</span>
+                        <span class="text-sm font-bold"><span id="timelineCompleted">0</span>/15</span>
+                    </div>
+                </div>
+
+                <!-- Phase Filter -->
+                <div class="flex gap-2">
+                    <button onclick="filterPhase('all')" class="phase-btn px-4 py-2 rounded-xl text-xs font-bold bg-violet-600 text-white">Todas</button>
+                    <button onclick="filterPhase('pre')" class="phase-btn px-4 py-2 rounded-xl text-xs font-bold bg-zinc-800 text-zinc-400 hover:bg-zinc-700">Pre-Producción</button>
+                    <button onclick="filterPhase('dist')" class="phase-btn px-4 py-2 rounded-xl text-xs font-bold bg-zinc-800 text-zinc-400 hover:bg-zinc-700">Distribución</button>
+                    <button onclick="filterPhase('promo')" class="phase-btn px-4 py-2 rounded-xl text-xs font-bold bg-zinc-800 text-zinc-400 hover:bg-zinc-700">Pre-Launch</button>
+                    <button onclick="filterPhase('launch')" class="phase-btn px-4 py-2 rounded-xl text-xs font-bold bg-zinc-800 text-zinc-400 hover:bg-zinc-700">Launch</button>
+                    <button onclick="filterPhase('post')" class="phase-btn px-4 py-2 rounded-xl text-xs font-bold bg-zinc-800 text-zinc-400 hover:bg-zinc-700">Post-Launch</button>
+                </div>
+
+                <!-- Timeline -->
+                <div class="card p-6">
+                    <div id="timelineContainer" class="timeline-container"></div>
+                </div>
+            </div>
+
+            <!-- SPOTIFY -->
+            <div id="spotify" class="tab-content space-y-6">
+                <div class="flex items-center gap-4">
+                    <svg class="w-10 h-10 text-[#1DB954]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+                    <div>
+                        <h2 class="text-xl font-bold">Spotify Analytics</h2>
+                        <p class="text-sm text-zinc-500">Conecta y trackea tus métricas</p>
+                    </div>
+                </div>
+
+                <div class="spotify-card rounded-2xl p-6">
+                    <h3 class="font-bold mb-4">Conectar Perfil</h3>
+                    <div class="flex gap-3">
+                        <input type="text" id="spotifyLinkInput" placeholder="https://open.spotify.com/artist/..." class="flex-1">
+                        <button onclick="connectSpotify()" class="px-6 py-2 bg-[#1DB954] hover:bg-[#1ed760] rounded-xl font-bold text-black text-sm">Conectar</button>
+                    </div>
+                </div>
+
+                <div class="spotify-card rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold">Métricas (de Spotify for Artists)</h3>
+                        <a href="https://artists.spotify.com" target="_blank" class="text-xs text-[#1DB954] hover:underline">Abrir S4A ↗</a>
+                    </div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-xs text-zinc-500 block mb-2">Top País</label>
-                            <input type="text" id="inputTopCountry" placeholder="ej: Mexico" onchange="updateSpotifyStats()">
-                        </div>
-                        <div>
-                            <label class="text-xs text-zinc-500 block mb-2">Top Ciudad</label>
-                            <input type="text" id="inputTopCity" placeholder="ej: Ciudad de México" onchange="updateSpotifyStats()">
-                        </div>
+                        <div><label class="text-xs text-zinc-500 block mb-2">Monthly Listeners</label><input type="number" id="inputMonthlyListeners" placeholder="1250" onchange="updateSpotifyStats()"></div>
+                        <div><label class="text-xs text-zinc-500 block mb-2">Followers</label><input type="number" id="inputFollowers" placeholder="450" onchange="updateSpotifyStats()"></div>
+                        <div><label class="text-xs text-zinc-500 block mb-2">Streams (28d)</label><input type="number" id="inputStreams28" placeholder="5000" onchange="updateSpotifyStats()"></div>
+                        <div><label class="text-xs text-zinc-500 block mb-2">Streams (7d)</label><input type="number" id="inputStreams7" placeholder="1200" onchange="updateSpotifyStats()"></div>
                     </div>
                 </div>
 
-                <!-- Stats Display -->
-                <div id="spotifyStatsDisplay" class="hidden">
-                    <div class="grid grid-cols-4 gap-4 mb-6">
-                        <div class="spotify-card rounded-2xl p-5 glow-green">
-                            <p class="text-xs uppercase tracking-wider text-zinc-500 mb-2">Monthly Listeners</p>
-                            <p class="text-3xl font-bold font-mono spotify-green" id="displayMonthlyListeners">--</p>
-                            <p class="text-xs text-zinc-600 mt-1" id="listenersTrend"></p>
-                        </div>
-                        <div class="spotify-card rounded-2xl p-5">
-                            <p class="text-xs uppercase tracking-wider text-zinc-500 mb-2">Followers</p>
-                            <p class="text-3xl font-bold font-mono text-white" id="displayFollowers">--</p>
-                            <p class="text-xs text-zinc-600 mt-1">Total acumulado</p>
-                        </div>
-                        <div class="spotify-card rounded-2xl p-5">
-                            <p class="text-xs uppercase tracking-wider text-zinc-500 mb-2">Streams (28d)</p>
-                            <p class="text-3xl font-bold font-mono text-white" id="displayStreams28">--</p>
-                            <p class="text-xs text-zinc-600 mt-1" id="streamsTrend"></p>
-                        </div>
-                        <div class="spotify-card rounded-2xl p-5">
-                            <p class="text-xs uppercase tracking-wider text-zinc-500 mb-2">Avg Daily</p>
-                            <p class="text-3xl font-bold font-mono text-white" id="displayAvgDaily">--</p>
-                            <p class="text-xs text-zinc-600 mt-1">streams/día</p>
-                        </div>
+                <div id="spotifyStatsDisplay" class="hidden grid grid-cols-4 gap-4">
+                    <div class="spotify-card rounded-2xl p-5 glow-green">
+                        <p class="text-xs text-zinc-500 mb-2">Monthly Listeners</p>
+                        <p class="text-3xl font-bold font-mono spotify-green" id="displayMonthlyListeners">--</p>
                     </div>
-
-                    <!-- Engagement Metrics -->
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="spotify-card rounded-2xl p-6">
-                            <h4 class="font-bold mb-4">Engagement Rate</h4>
-                            <div class="flex items-center gap-6">
-                                <div class="relative w-24 h-24">
-                                    <svg class="w-24 h-24 -rotate-90">
-                                        <circle cx="48" cy="48" r="40" stroke="#27272a" stroke-width="8" fill="none"/>
-                                        <circle id="engagementCircle" cx="48" cy="48" r="40" stroke="#1DB954" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
-                                    </svg>
-                                    <span class="absolute inset-0 flex items-center justify-center text-lg font-bold" id="engagementRate">--%</span>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-zinc-400">Followers / Monthly Listeners</p>
-                                    <p class="text-xs text-zinc-600 mt-1">Meta: >30% = audiencia leal</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="spotify-card rounded-2xl p-6">
-                            <h4 class="font-bold mb-4">Top Locations</h4>
-                            <div class="space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm" id="topCountryDisplay">--</span>
-                                    <span class="text-xs text-zinc-500">Top Country</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm" id="topCityDisplay">--</span>
-                                    <span class="text-xs text-zinc-500">Top City</span>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="spotify-card rounded-2xl p-5">
+                        <p class="text-xs text-zinc-500 mb-2">Followers</p>
+                        <p class="text-3xl font-bold font-mono" id="displayFollowers">--</p>
                     </div>
-
-                    <!-- Revenue Estimator -->
-                    <div class="spotify-card rounded-2xl p-6 mt-6">
-                        <h4 class="font-bold mb-4">💰 Revenue Estimator</h4>
-                        <div class="grid grid-cols-3 gap-6">
-                            <div>
-                                <p class="text-xs text-zinc-500 mb-1">Est. Monthly Revenue</p>
-                                <p class="text-2xl font-bold font-mono spotify-green" id="estMonthlyRevenue">$--</p>
-                                <p class="text-xs text-zinc-600">@ $0.004/stream</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-zinc-500 mb-1">Est. Annual Revenue</p>
-                                <p class="text-2xl font-bold font-mono text-white" id="estAnnualRevenue">$--</p>
-                                <p class="text-xs text-zinc-600">proyección actual</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-zinc-500 mb-1">Streams para $1000/mes</p>
-                                <p class="text-2xl font-bold font-mono text-amber-400" id="streamsFor1000">250K</p>
-                                <p class="text-xs text-zinc-600">objetivo</p>
-                            </div>
-                        </div>
+                    <div class="spotify-card rounded-2xl p-5">
+                        <p class="text-xs text-zinc-500 mb-2">Engagement</p>
+                        <p class="text-3xl font-bold font-mono" id="displayEngagement">--%</p>
+                    </div>
+                    <div class="spotify-card rounded-2xl p-5">
+                        <p class="text-xs text-zinc-500 mb-2">Est. Revenue/mo</p>
+                        <p class="text-3xl font-bold font-mono spotify-green" id="displayRevenue">$--</p>
                     </div>
                 </div>
 
-                <!-- Embedded Player -->
                 <div id="spotifyEmbed" class="spotify-card rounded-2xl p-6 hidden">
                     <h4 class="font-bold mb-4">Preview</h4>
                     <div id="embedContainer"></div>
                 </div>
             </div>
 
-            <!-- TASKS -->
-            <div id="tasks" class="tab-content space-y-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">Launch Timeline</h2>
-                    <span class="text-sm text-zinc-500"><span id="tasksCompletedLabel">0</span>/15</span>
-                </div>
-                <div id="tasksList" class="space-y-6"></div>
-            </div>
-
             <!-- SPLITS -->
             <div id="splits" class="tab-content space-y-6">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold">IP Protection</h2>
+                    <h2 class="text-xl font-bold">🛡 IP Protection</h2>
                     <div id="splitsTotalBadge" class="px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400">100%</div>
                 </div>
                 <div class="card p-6">
@@ -311,7 +302,7 @@
 
             <!-- BUDGET -->
             <div id="budget" class="tab-content space-y-6">
-                <h2 class="text-xl font-bold">Capital Ops</h2>
+                <h2 class="text-xl font-bold">💰 Capital Ops</h2>
                 <div class="grid grid-cols-4 gap-4">
                     <div class="card p-5"><p class="text-xs text-zinc-600 mb-2">Total</p><p class="text-2xl font-bold font-mono">$500</p></div>
                     <div class="card p-5"><p class="text-xs text-zinc-600 mb-2">Asignado</p><p class="text-2xl font-bold font-mono text-violet-400">$480</p></div>
@@ -323,7 +314,7 @@
 
             <!-- OUTREACH -->
             <div id="outreach" class="tab-content space-y-6">
-                <h2 class="text-xl font-bold">PR Pipeline</h2>
+                <h2 class="text-xl font-bold">📡 PR Pipeline</h2>
                 <div class="card overflow-hidden">
                     <table class="w-full">
                         <thead class="bg-zinc-800/50 text-xs uppercase text-zinc-500">
@@ -340,7 +331,7 @@
         // STATE
         const state = {
             project: { name: 'Mi Primer Release', releaseDate: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0], secret: '' },
-            spotify: { connected: false, artistId: '', artistName: '', monthlyListeners: 0, followers: 0, streams28: 0, streams7: 0, topCountry: '', topCity: '' },
+            spotify: { connected: false, artistId: '', monthlyListeners: 0, followers: 0, streams28: 0, streams7: 0 },
             splits: [{ id: 1, name: 'Artista Principal', role: 'Master + Publishing', percentage: 100 }],
             budget: { items: [
                 { id: 1, category: 'Distribución', allocated: 30, spent: 25 },
@@ -354,46 +345,282 @@
                 { name: 'Chill Vibes', reach: '3M+', status: 'pitched' },
                 { name: 'Fresh Finds', reach: '800K', status: 'not-started' },
                 { name: 'The Cozy Chill', reach: '200K', status: 'accepted' }
-            ]
+            ],
+            calendarMonth: new Date(),
+            phaseFilter: 'all'
         };
 
         const TASKS = [
-            { phase: 'pre', week: -8, task: 'Master final aprobado', category: 'AUDIO', critical: true },
-            { phase: 'pre', week: -8, task: 'Split sheet firmado', category: 'LEGAL', critical: true },
-            { phase: 'pre', week: -7, task: 'Registrar en PRO', category: 'LEGAL', critical: true },
-            { phase: 'dist', week: -5, task: 'Cover art final', category: 'VISUAL', critical: true },
-            { phase: 'dist', week: -5, task: 'Subir a distribuidor', category: 'DIST', critical: true },
-            { phase: 'dist', week: -4, task: 'Pre-save links', category: 'DIST', critical: true },
-            { phase: 'promo', week: -3, task: 'Pitch editorial Spotify', category: 'PR', critical: true },
-            { phase: 'promo', week: -2, task: 'Enviar a curadores', category: 'PR', critical: false },
-            { phase: 'promo', week: -1, task: 'Teaser en stories', category: 'CONTENT', critical: false },
-            { phase: 'promo', week: -1, task: 'Configurar píxel', category: 'GROWTH', critical: true },
-            { phase: 'launch', week: 0, task: 'Post de lanzamiento', category: 'CONTENT', critical: true },
-            { phase: 'launch', week: 0, task: 'Activar ads', category: 'GROWTH', critical: true },
-            { phase: 'post', week: 1, task: 'Análisis semana 1', category: 'ANALYTICS', critical: true },
-            { phase: 'post', week: 2, task: 'Optimizar ads', category: 'GROWTH', critical: false },
-            { phase: 'post', week: 4, task: 'Reporte final', category: 'ANALYTICS', critical: true }
+            { phase: 'pre', week: -8, task: 'Master final aprobado y exportado', category: 'AUDIO', critical: true },
+            { phase: 'pre', week: -8, task: 'Split sheet firmado por todos', category: 'LEGAL', critical: true },
+            { phase: 'pre', week: -7, task: 'Registrar obra en PRO (ASCAP/BMI/SGAE)', category: 'LEGAL', critical: true },
+            { phase: 'pre', week: -6, task: 'Briefing visual y mood board', category: 'VISUAL', critical: false },
+            { phase: 'dist', week: -5, task: 'Cover art final (3000x3000 RGB)', category: 'VISUAL', critical: true },
+            { phase: 'dist', week: -5, task: 'Subir release al distribuidor', category: 'DIST', critical: true },
+            { phase: 'dist', week: -4, task: 'Configurar pre-save/pre-add links', category: 'DIST', critical: true },
+            { phase: 'promo', week: -3, task: 'Pitch editorial en Spotify for Artists', category: 'PR', critical: true },
+            { phase: 'promo', week: -2, task: 'Enviar a curadores de playlists indie', category: 'PR', critical: false },
+            { phase: 'promo', week: -1, task: 'Publicar teaser en stories', category: 'CONTENT', critical: false },
+            { phase: 'promo', week: -1, task: 'Configurar píxel de tracking', category: 'GROWTH', critical: true },
+            { phase: 'launch', week: 0, task: 'Post de lanzamiento en todas las redes', category: 'CONTENT', critical: true },
+            { phase: 'launch', week: 0, task: 'Activar campañas de ads', category: 'GROWTH', critical: true },
+            { phase: 'post', week: 1, task: 'Análisis de métricas semana 1', category: 'ANALYTICS', critical: true },
+            { phase: 'post', week: 2, task: 'Optimizar ads basado en data', category: 'GROWTH', critical: false }
         ];
 
         const COLORS = {
-            AUDIO: 'bg-cyan-500/20 text-cyan-400', LEGAL: 'bg-rose-500/20 text-rose-400',
-            VISUAL: 'bg-fuchsia-500/20 text-fuchsia-400', DIST: 'bg-blue-500/20 text-blue-400',
-            PR: 'bg-amber-500/20 text-amber-400', CONTENT: 'bg-emerald-500/20 text-emerald-400',
-            GROWTH: 'bg-orange-500/20 text-orange-400', ANALYTICS: 'bg-indigo-500/20 text-indigo-400'
+            AUDIO: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', hex: '#06b6d4' },
+            LEGAL: { bg: 'bg-rose-500/20', text: 'text-rose-400', hex: '#f43f5e' },
+            VISUAL: { bg: 'bg-fuchsia-500/20', text: 'text-fuchsia-400', hex: '#d946ef' },
+            DIST: { bg: 'bg-blue-500/20', text: 'text-blue-400', hex: '#3b82f6' },
+            PR: { bg: 'bg-amber-500/20', text: 'text-amber-400', hex: '#f59e0b' },
+            CONTENT: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', hex: '#10b981' },
+            GROWTH: { bg: 'bg-orange-500/20', text: 'text-orange-400', hex: '#f97316' },
+            ANALYTICS: { bg: 'bg-indigo-500/20', text: 'text-indigo-400', hex: '#6366f1' }
         };
 
-        // STORAGE
-        function save() { localStorage.setItem('co_v3', JSON.stringify(state)); }
-        function load() { const s = localStorage.getItem('co_v3'); if(s) Object.assign(state, JSON.parse(s)); }
+        const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
-        // UTILS
+        // STORAGE
+        function save() { localStorage.setItem('co_v4', JSON.stringify(state)); }
+        function load() { const s = localStorage.getItem('co_v4'); if(s) Object.assign(state, JSON.parse(s)); state.calendarMonth = new Date(); }
+
+        // DATE UTILS
+        function getTaskDate(task) {
+            const release = new Date(state.project.releaseDate);
+            release.setDate(release.getDate() + (task.week * 7));
+            return release;
+        }
+
+        function formatDate(date) {
+            return `${date.getDate()} ${MONTHS[date.getMonth()].substring(0,3)}`;
+        }
+
+        function formatDateFull(date) {
+            return `${DAYS_SHORT[date.getDay()]} ${date.getDate()} de ${MONTHS[date.getMonth()]}`;
+        }
+
+        function isSameDay(d1, d2) {
+            return d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
+        }
+
         function getDaysUntil() {
             const r = new Date(state.project.releaseDate), t = new Date();
             t.setHours(0,0,0,0); r.setHours(0,0,0,0);
             return Math.ceil((r - t) / (1000*60*60*24));
         }
-        function getWeeksUntil() { return Math.ceil(getDaysUntil() / 7); }
+
         function fmt(n) { return n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(1)+'K' : n.toString(); }
+
+        // CALENDAR
+        function renderCalendar() {
+            const year = state.calendarMonth.getFullYear();
+            const month = state.calendarMonth.getMonth();
+            
+            document.getElementById('currentMonth').textContent = `${MONTHS[month]} ${year}`;
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const releaseDate = new Date(state.project.releaseDate);
+            releaseDate.setHours(0,0,0,0);
+            
+            // Get tasks with dates
+            const tasksWithDates = TASKS.map((t, idx) => ({
+                ...t,
+                idx,
+                date: getTaskDate(t),
+                done: state.completedTasks.includes(idx)
+            }));
+            
+            let html = '';
+            let currentDate = new Date(startDate);
+            
+            for (let i = 0; i < 42; i++) {
+                const isCurrentMonth = currentDate.getMonth() === month;
+                const isToday = isSameDay(currentDate, today);
+                const isRelease = isSameDay(currentDate, releaseDate);
+                
+                const dayTasks = tasksWithDates.filter(t => isSameDay(t.date, currentDate));
+                const hasOverdue = dayTasks.some(t => !t.done && currentDate < today);
+                
+                let dayClass = 'calendar-day';
+                if (!isCurrentMonth) dayClass += ' other-month';
+                if (isToday) dayClass += ' today';
+                if (isRelease) dayClass += ' release-day';
+                if (dayTasks.length > 0 && !isRelease) dayClass += ' has-task';
+                
+                html += `<div class="${dayClass}" onclick="selectDay('${currentDate.toISOString()}')">
+                    <span class="text-xs font-bold ${isRelease ? 'text-white' : isToday ? 'text-violet-400' : 'text-zinc-500'}">${currentDate.getDate()}</span>
+                    ${isRelease ? '<span class="text-[10px] block text-white/80 mt-1">🚀 RELEASE</span>' : ''}
+                    <div class="mt-1 space-y-1">`;
+                
+                dayTasks.slice(0, 3).forEach(t => {
+                    const color = COLORS[t.category];
+                    const statusClass = t.done ? 'done bg-emerald-500/30 text-emerald-300' : 
+                                       (currentDate < today ? 'bg-rose-500/30 text-rose-300' : 
+                                       `${color.bg} ${color.text}`);
+                    html += `<div class="calendar-task ${statusClass}" title="${t.task}">${t.task.substring(0, 20)}${t.task.length > 20 ? '...' : ''}</div>`;
+                });
+                
+                if (dayTasks.length > 3) {
+                    html += `<div class="text-[10px] text-zinc-500">+${dayTasks.length - 3} más</div>`;
+                }
+                
+                html += '</div></div>';
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            document.getElementById('calendarGrid').innerHTML = html;
+        }
+
+        function changeMonth(delta) {
+            state.calendarMonth.setMonth(state.calendarMonth.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function selectDay(isoDate) {
+            const date = new Date(isoDate);
+            const tasksWithDates = TASKS.map((t, idx) => ({ ...t, idx, date: getTaskDate(t), done: state.completedTasks.includes(idx) }));
+            const dayTasks = tasksWithDates.filter(t => isSameDay(t.date, date));
+            
+            if (dayTasks.length === 0) {
+                document.getElementById('selectedDayTasks').classList.add('hidden');
+                return;
+            }
+            
+            document.getElementById('selectedDayTasks').classList.remove('hidden');
+            document.getElementById('selectedDayTitle').textContent = `Tareas del ${formatDateFull(date)}`;
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            let html = '';
+            dayTasks.forEach(t => {
+                const color = COLORS[t.category];
+                const isOverdue = !t.done && t.date < today;
+                html += `<div onclick="toggleTask(${t.idx})" class="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-zinc-800/50 border ${isOverdue ? 'border-rose-500/50 bg-rose-500/5' : 'border-zinc-800'}">
+                    <div class="w-5 h-5 rounded border-2 flex items-center justify-center ${t.done ? 'bg-emerald-500 border-emerald-500' : 'border-zinc-600'}">
+                        ${t.done ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' : ''}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold px-2 py-0.5 rounded ${color.bg} ${color.text}">${t.category}</span>
+                            ${t.critical ? '<span class="text-xs text-rose-400">⚠ Crítico</span>' : ''}
+                        </div>
+                        <p class="text-sm mt-1 ${t.done ? 'line-through text-zinc-500' : ''}">${t.task}</p>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('selectedDayTasksList').innerHTML = html;
+        }
+
+        // TIMELINE
+        function renderTimeline() {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            const tasksWithDates = TASKS.map((t, idx) => ({
+                ...t, idx,
+                date: getTaskDate(t),
+                done: state.completedTasks.includes(idx)
+            })).filter(t => state.phaseFilter === 'all' || t.phase === state.phaseFilter)
+              .sort((a, b) => a.date - b.date);
+            
+            document.getElementById('timelineCompleted').textContent = state.completedTasks.length;
+            
+            let html = '<div class="timeline-line"></div>';
+            
+            tasksWithDates.forEach((t, i) => {
+                const isOverdue = !t.done && t.date < today;
+                const isCurrent = isSameDay(t.date, today);
+                const color = COLORS[t.category];
+                
+                let dotClass = 'timeline-dot';
+                if (t.done) dotClass += ' done';
+                else if (isCurrent) dotClass += ' current';
+                else if (isOverdue) dotClass += ' overdue';
+                
+                html += `
+                    <div class="timeline-item" style="animation: fadeIn 0.3s ease ${i * 0.05}s both">
+                        <div class="timeline-date">
+                            <span class="${isOverdue ? 'text-rose-400' : isCurrent ? 'text-amber-400 font-bold' : ''}">${formatDate(t.date)}</span>
+                            <span class="block text-[10px] ${isOverdue ? 'text-rose-400/70' : 'text-zinc-600'}">${t.week === 0 ? 'LAUNCH' : (t.week > 0 ? '+' : '') + t.week + ' sem'}</span>
+                        </div>
+                        <div class="${dotClass}"></div>
+                        <div onclick="toggleTask(${t.idx})" class="card p-4 cursor-pointer hover:border-zinc-700 transition-all ${t.done ? 'opacity-50' : ''} ${isOverdue ? 'border-rose-500/30' : ''}">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xs font-bold px-2 py-0.5 rounded ${color.bg} ${color.text}">${t.category}</span>
+                                ${t.critical ? '<span class="text-xs font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-400">CRÍTICO</span>' : ''}
+                                ${t.done ? '<span class="text-xs text-emerald-400 ml-auto">✓ Completada</span>' : ''}
+                                ${isOverdue ? '<span class="text-xs text-rose-400 ml-auto">⚠ Atrasada</span>' : ''}
+                            </div>
+                            <p class="${t.done ? 'line-through text-zinc-500' : 'text-zinc-200'}">${t.task}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('timelineContainer').innerHTML = html;
+        }
+
+        function filterPhase(phase) {
+            state.phaseFilter = phase;
+            document.querySelectorAll('.phase-btn').forEach(btn => {
+                btn.classList.remove('bg-violet-600', 'text-white');
+                btn.classList.add('bg-zinc-800', 'text-zinc-400');
+            });
+            event.currentTarget.classList.remove('bg-zinc-800', 'text-zinc-400');
+            event.currentTarget.classList.add('bg-violet-600', 'text-white');
+            renderTimeline();
+        }
+
+        // UPCOMING TASKS
+        function renderUpcoming() {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            const upcoming = TASKS.map((t, idx) => ({
+                ...t, idx,
+                date: getTaskDate(t),
+                done: state.completedTasks.includes(idx)
+            }))
+            .filter(t => !t.done)
+            .sort((a, b) => a.date - b.date)
+            .slice(0, 5);
+            
+            if (upcoming.length === 0) {
+                document.getElementById('upcomingTasks').innerHTML = '<p class="text-sm text-zinc-500">🎉 ¡Todas las tareas completadas!</p>';
+                return;
+            }
+            
+            let html = '';
+            upcoming.forEach(t => {
+                const isOverdue = t.date < today;
+                const isToday = isSameDay(t.date, today);
+                const color = COLORS[t.category];
+                
+                html += `<div onclick="toggleTask(${t.idx})" class="flex items-center gap-4 p-3 rounded-xl cursor-pointer hover:bg-zinc-800/50 ${isOverdue ? 'bg-rose-500/5 border border-rose-500/30' : isToday ? 'bg-amber-500/5 border border-amber-500/30' : 'border border-zinc-800/50'}">
+                    <div class="w-5 h-5 rounded border-2 border-zinc-600"></div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold px-2 py-0.5 rounded ${color.bg} ${color.text}">${t.category}</span>
+                            <span class="text-xs ${isOverdue ? 'text-rose-400' : isToday ? 'text-amber-400' : 'text-zinc-500'}">${formatDate(t.date)}</span>
+                            ${isOverdue ? '<span class="text-xs text-rose-400">⚠ Atrasada</span>' : ''}
+                            ${isToday ? '<span class="text-xs text-amber-400">📍 Hoy</span>' : ''}
+                        </div>
+                        <p class="text-sm mt-1">${t.task}</p>
+                    </div>
+                </div>`;
+            });
+            
+            document.getElementById('upcomingTasks').innerHTML = html;
+        }
 
         // SPOTIFY
         function connectSpotify() {
@@ -403,23 +630,9 @@
                 state.spotify.artistId = match[1];
                 state.spotify.connected = true;
                 save();
-                
-                // Show embed
                 document.getElementById('spotifyEmbed').classList.remove('hidden');
-                document.getElementById('embedContainer').innerHTML = `
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/artist/${match[1]}?utm_source=generator&theme=0" 
-                        width="100%" height="352" frameBorder="0" allowfullscreen="" 
-                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                `;
-                
-                document.getElementById('connectionStatus').innerHTML = `
-                    <div class="w-2 h-2 rounded-full bg-[#1DB954] animate-pulse"></div>
-                    <span class="text-xs text-[#1DB954]">Conectado</span>
-                `;
-                
+                document.getElementById('embedContainer').innerHTML = `<iframe style="border-radius:12px" src="https://open.spotify.com/embed/artist/${match[1]}?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
                 renderSpotifyWidget();
-            } else {
-                alert('Link inválido. Usa el formato: https://open.spotify.com/artist/...');
             }
         }
 
@@ -428,50 +641,17 @@
             state.spotify.followers = parseInt(document.getElementById('inputFollowers').value) || 0;
             state.spotify.streams28 = parseInt(document.getElementById('inputStreams28').value) || 0;
             state.spotify.streams7 = parseInt(document.getElementById('inputStreams7').value) || 0;
-            state.spotify.topCountry = document.getElementById('inputTopCountry').value || '';
-            state.spotify.topCity = document.getElementById('inputTopCity').value || '';
             save();
-            renderSpotifyStats();
-            renderSpotifyWidget();
-        }
-
-        function renderSpotifyStats() {
-            const s = state.spotify;
-            if (s.monthlyListeners > 0 || s.followers > 0) {
+            
+            if (state.spotify.monthlyListeners > 0) {
                 document.getElementById('spotifyStatsDisplay').classList.remove('hidden');
-                
-                document.getElementById('displayMonthlyListeners').textContent = fmt(s.monthlyListeners);
-                document.getElementById('displayFollowers').textContent = fmt(s.followers);
-                document.getElementById('displayStreams28').textContent = fmt(s.streams28);
-                
-                const avgDaily = s.streams28 > 0 ? Math.round(s.streams28 / 28) : 0;
-                document.getElementById('displayAvgDaily').textContent = fmt(avgDaily);
-                
-                // Engagement rate
-                const engagement = s.monthlyListeners > 0 ? (s.followers / s.monthlyListeners * 100) : 0;
-                document.getElementById('engagementRate').textContent = engagement.toFixed(1) + '%';
-                const circumference = 251.2;
-                const offset = circumference - (Math.min(engagement, 100) / 100 * circumference);
-                document.getElementById('engagementCircle').style.strokeDashoffset = offset;
-                
-                // Locations
-                document.getElementById('topCountryDisplay').textContent = s.topCountry || '--';
-                document.getElementById('topCityDisplay').textContent = s.topCity || '--';
-                
-                // Revenue estimates
-                const monthlyRevenue = (s.streams28 * 0.004).toFixed(2);
-                const annualRevenue = (monthlyRevenue * 12).toFixed(0);
-                document.getElementById('estMonthlyRevenue').textContent = '$' + monthlyRevenue;
-                document.getElementById('estAnnualRevenue').textContent = '$' + annualRevenue;
-                
-                // Trend
-                if (s.streams7 > 0 && s.streams28 > 0) {
-                    const weeklyAvg = s.streams28 / 4;
-                    const trend = ((s.streams7 - weeklyAvg) / weeklyAvg * 100).toFixed(1);
-                    document.getElementById('streamsTrend').textContent = (trend >= 0 ? '+' : '') + trend + '% vs avg';
-                    document.getElementById('streamsTrend').className = 'text-xs ' + (trend >= 0 ? 'text-emerald-400' : 'text-rose-400');
-                }
+                document.getElementById('displayMonthlyListeners').textContent = fmt(state.spotify.monthlyListeners);
+                document.getElementById('displayFollowers').textContent = fmt(state.spotify.followers);
+                const engagement = state.spotify.monthlyListeners > 0 ? (state.spotify.followers / state.spotify.monthlyListeners * 100).toFixed(1) : 0;
+                document.getElementById('displayEngagement').textContent = engagement + '%';
+                document.getElementById('displayRevenue').textContent = '$' + (state.spotify.streams28 * 0.004).toFixed(2);
             }
+            renderSpotifyWidget();
         }
 
         function renderSpotifyWidget() {
@@ -479,62 +659,37 @@
             const widget = document.getElementById('spotifyWidget');
             
             if (s.monthlyListeners > 0 || s.connected) {
-                const engagement = s.monthlyListeners > 0 ? (s.followers / s.monthlyListeners * 100).toFixed(1) : 0;
-                const trend = s.streams7 > 0 && s.streams28 > 0 ? (((s.streams7 - s.streams28/4) / (s.streams28/4)) * 100).toFixed(1) : 0;
-                
-                widget.innerHTML = `
-                    <div class="spotify-card rounded-2xl p-6 glow-green">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-8 h-8 text-[#1DB954]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-                                <div>
-                                    <h3 class="font-bold text-[#1DB954]">Spotify Connected</h3>
-                                    <p class="text-xs text-zinc-500">Live metrics</p>
-                                </div>
-                            </div>
-                            <button onclick="switchTab('spotify')" class="text-xs text-[#1DB954] hover:underline">Detalles →</button>
+                widget.innerHTML = `<div class="spotify-card rounded-2xl p-6 glow-green">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-8 h-8 text-[#1DB954]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+                            <div><h3 class="font-bold text-[#1DB954]">Spotify</h3><p class="text-xs text-zinc-500">${fmt(s.monthlyListeners)} listeners</p></div>
                         </div>
-                        <div class="grid grid-cols-4 gap-4">
-                            <div class="text-center">
-                                <p class="text-2xl font-bold font-mono text-white">${fmt(s.monthlyListeners)}</p>
-                                <p class="text-xs text-zinc-500">Listeners</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-2xl font-bold font-mono text-white">${fmt(s.followers)}</p>
-                                <p class="text-xs text-zinc-500">Followers</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-2xl font-bold font-mono text-white">${fmt(s.streams28)}</p>
-                                <p class="text-xs text-zinc-500">Streams/28d</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-2xl font-bold font-mono ${trend >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${trend >= 0 ? '+' : ''}${trend}%</p>
-                                <p class="text-xs text-zinc-500">7d Trend</p>
-                            </div>
-                        </div>
+                        <button onclick="switchTab('spotify')" class="text-xs text-[#1DB954] hover:underline">Detalles →</button>
                     </div>
-                `;
+                    <div class="grid grid-cols-4 gap-4 text-center">
+                        <div><p class="text-xl font-bold font-mono">${fmt(s.monthlyListeners)}</p><p class="text-xs text-zinc-500">Listeners</p></div>
+                        <div><p class="text-xl font-bold font-mono">${fmt(s.followers)}</p><p class="text-xs text-zinc-500">Followers</p></div>
+                        <div><p class="text-xl font-bold font-mono">${fmt(s.streams28)}</p><p class="text-xs text-zinc-500">Streams/28d</p></div>
+                        <div><p class="text-xl font-bold font-mono spotify-green">$${(s.streams28 * 0.004).toFixed(0)}</p><p class="text-xs text-zinc-500">Est. Rev</p></div>
+                    </div>
+                </div>`;
             } else {
-                widget.innerHTML = `
-                    <div class="spotify-card rounded-2xl p-6 cursor-pointer hover:border-[#1DB954]/50 transition-all" onclick="switchTab('spotify')">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-[#1DB954]/20 flex items-center justify-center">
-                                    <svg class="w-7 h-7 text-[#1DB954]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold">Conecta tu Spotify</h3>
-                                    <p class="text-sm text-zinc-500">Ve métricas en tiempo real</p>
-                                </div>
+                widget.innerHTML = `<div class="spotify-card rounded-2xl p-6 cursor-pointer hover:border-[#1DB954]/50" onclick="switchTab('spotify')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-[#1DB954]/20 flex items-center justify-center">
+                                <svg class="w-7 h-7 text-[#1DB954]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
                             </div>
-                            <span class="text-[#1DB954] text-2xl">→</span>
+                            <div><h3 class="font-bold">Conecta Spotify</h3><p class="text-sm text-zinc-500">Trackea tus métricas</p></div>
                         </div>
+                        <span class="text-[#1DB954] text-2xl">→</span>
                     </div>
-                `;
+                </div>`;
             }
         }
 
-        // RENDER
+        // MAIN RENDER
         function renderAll() {
             document.getElementById('projectName').value = state.project.name;
             document.getElementById('releaseDate').value = state.project.releaseDate;
@@ -543,7 +698,6 @@
             document.getElementById('countdown').textContent = `${Math.abs(days)} días ${days > 0 ? 'para launch' : 'desde launch'}`;
             document.getElementById('countdown').className = `px-4 py-2 rounded-xl font-bold ${days <= 7 ? 'bg-rose-500/10 text-rose-400' : 'bg-violet-500/10 text-violet-400'}`;
 
-            // Readiness
             const taskProg = (state.completedTasks.length / TASKS.length) * 100;
             const splitsTotal = state.splits.reduce((s,x) => s + x.percentage, 0);
             const readiness = (taskProg + (splitsTotal === 100 ? 100 : 0)) / 2;
@@ -560,15 +714,17 @@
             document.getElementById('splitsTotal').textContent = `${splitsTotal}%`;
             document.getElementById('splitsTotal').className = `text-2xl font-bold font-mono ${splitsTotal === 100 ? 'text-emerald-400' : 'text-rose-400'}`;
 
-            const weeksUntil = getWeeksUntil();
-            const overdueCount = TASKS.filter((t,i) => t.week < -weeksUntil && !state.completedTasks.includes(i)).length;
+            const today = new Date(); today.setHours(0,0,0,0);
+            const overdueCount = TASKS.filter((t,i) => !state.completedTasks.includes(i) && getTaskDate(t) < today).length;
             document.getElementById('overdueAlert').classList.toggle('hidden', overdueCount === 0);
             document.getElementById('overdueCount').textContent = overdueCount;
             
             document.getElementById('secretInput').value = state.project.secret || '';
             
+            renderUpcoming();
             renderSpotifyWidget();
-            renderTasks();
+            renderCalendar();
+            renderTimeline();
             renderSplits();
             renderBudget();
             renderOutreach();
@@ -578,40 +734,13 @@
             if (state.spotify.followers) document.getElementById('inputFollowers').value = state.spotify.followers;
             if (state.spotify.streams28) document.getElementById('inputStreams28').value = state.spotify.streams28;
             if (state.spotify.streams7) document.getElementById('inputStreams7').value = state.spotify.streams7;
-            if (state.spotify.topCountry) document.getElementById('inputTopCountry').value = state.spotify.topCountry;
-            if (state.spotify.topCity) document.getElementById('inputTopCity').value = state.spotify.topCity;
             if (state.spotify.artistId) document.getElementById('spotifyLinkInput').value = `https://open.spotify.com/artist/${state.spotify.artistId}`;
-            
-            renderSpotifyStats();
+            updateSpotifyStats();
             
             if (state.spotify.connected && state.spotify.artistId) {
                 document.getElementById('spotifyEmbed').classList.remove('hidden');
                 document.getElementById('embedContainer').innerHTML = `<iframe style="border-radius:12px" src="https://open.spotify.com/embed/artist/${state.spotify.artistId}?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
-                document.getElementById('connectionStatus').innerHTML = `<div class="w-2 h-2 rounded-full bg-[#1DB954] animate-pulse"></div><span class="text-xs text-[#1DB954]">Conectado</span>`;
             }
-        }
-
-        function renderTasks() {
-            const weeksUntil = getWeeksUntil();
-            document.getElementById('tasksCompletedLabel').textContent = state.completedTasks.length;
-            const phases = { pre: { name: 'Pre-Producción', tasks: [] }, dist: { name: 'Distribución', tasks: [] }, promo: { name: 'Pre-Launch', tasks: [] }, launch: { name: 'Launch', tasks: [] }, post: { name: 'Post-Launch', tasks: [] } };
-            TASKS.forEach((t, i) => phases[t.phase].tasks.push({ ...t, idx: i }));
-            
-            let html = '';
-            for (const [k, p] of Object.entries(phases)) {
-                html += `<div class="card p-5"><h3 class="font-bold mb-4">${p.name}</h3><div class="space-y-2">`;
-                p.tasks.forEach(t => {
-                    const done = state.completedTasks.includes(t.idx);
-                    const overdue = t.week < -weeksUntil && !done;
-                    const thisWeek = t.week === -weeksUntil || (t.week === 0 && weeksUntil <= 0);
-                    html += `<div onclick="toggleTask(${t.idx})" class="flex items-center gap-4 p-4 rounded-xl cursor-pointer hover:bg-white/5 ${done ? 'opacity-50' : ''} ${overdue ? 'border-l-4 border-rose-500 bg-rose-500/5' : ''} ${thisWeek && !done ? 'border-l-4 border-violet-500 bg-violet-500/5' : 'border border-zinc-800'}">
-                        <div class="w-6 h-6 rounded-lg border-2 flex items-center justify-center ${done ? 'bg-violet-600 border-violet-600' : 'border-zinc-700'}">${done ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' : ''}</div>
-                        <div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="text-xs font-bold uppercase px-2 py-0.5 rounded ${COLORS[t.category]}">${t.category}</span>${t.critical ? '<span class="text-xs font-bold uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-400">!</span>' : ''}</div><p class="text-sm ${done ? 'line-through text-zinc-600' : ''}">${t.task}</p></div>
-                    </div>`;
-                });
-                html += '</div></div>';
-            }
-            document.getElementById('tasksList').innerHTML = html;
         }
 
         function renderSplits() {
@@ -654,9 +783,16 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            event.currentTarget?.classList.add('active');
+            if (id === 'calendar') renderCalendar();
+            if (id === 'timeline') renderTimeline();
         }
-        function toggleTask(i) { state.completedTasks.includes(i) ? state.completedTasks = state.completedTasks.filter(x=>x!==i) : state.completedTasks.push(i); save(); renderAll(); }
+        
+        function toggleTask(i) {
+            state.completedTasks.includes(i) ? state.completedTasks = state.completedTasks.filter(x=>x!==i) : state.completedTasks.push(i);
+            save();
+            renderAll();
+        }
+        
         function addSplit() { state.splits.push({ id: Date.now(), name: 'Nuevo', role: '', percentage: 0 }); save(); renderSplits(); renderAll(); }
         function updateSplit(i, f, v) { state.splits[i][f] = v; save(); renderSplits(); renderAll(); }
         function removeSplit(i) { state.splits.splice(i, 1); save(); renderSplits(); renderAll(); }
