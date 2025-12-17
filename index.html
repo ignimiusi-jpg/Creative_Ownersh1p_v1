@@ -22,49 +22,719 @@
         .card { background: rgba(24, 24, 27, 0.6); border: 1px solid #27272a; border-radius: 16px; }
         .progress-bar { height: 8px; background: #27272a; border-radius: 10px; overflow: hidden; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, #8b5cf6, #d946ef); border-radius: 10px; transition: width 0.3s; }
-        .notification {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 10px 14px;
-            background: rgba(239, 68, 68, 0.9);
-            color: white;
-            font-weight: bold;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            display: none;
-        }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <div id="notification" class="notification">Overdue tasks detected!</div>
-
     <!-- Sidebar -->
     <aside class="w-64 border-r border-zinc-800 flex flex-col bg-zinc-950">
-        <!-- Sidebar code remains unchanged -->
+        <div class="p-5 border-b border-zinc-800">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center text-xl font-bold">◉</div>
+                <div>
+                    <h1 class="font-bold text-sm">Creative Ownersh1p</h1>
+                    <p class="text-xs text-zinc-600">Launch Command v2</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 p-3 space-y-1" id="nav">
+            <button onclick="switchTab('command')" class="nav-btn active w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                <span>◉</span> Command Center
+            </button>
+            <button onclick="switchTab('tasks')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                <span>☑</span> Launch Timeline
+            </button>
+            <button onclick="switchTab('metrics')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                <span>📊</span> Audience Metrics
+            </button>
+            <button onclick="switchTab('splits')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                <span>🛡</span> IP Protection
+            </button>
+            <button onclick="switchTab('budget')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                <span>💰</span> Capital Ops
+            </button>
+            <button onclick="switchTab('outreach')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+                <span>📡</span> PR Pipeline
+            </button>
+        </nav>
+        <div class="p-4 border-t border-zinc-800">
+            <button onclick="exportData()" class="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-xs font-semibold transition-all">
+                📥 Export Backup
+            </button>
+        </div>
     </aside>
 
     <!-- Main -->
     <main class="flex-1 flex flex-col min-w-0">
         <!-- Header -->
         <header class="h-16 border-b border-zinc-800 flex items-center justify-between px-6 bg-zinc-950/80">
-            <!-- Header code remains unchanged -->
+            <div class="flex items-center gap-6">
+                <div>
+                    <input type="text" id="projectName" value="Mi Primer Release" class="bg-transparent border-none text-lg font-bold p-0 focus:outline-none w-48">
+                    <p class="text-xs text-zinc-600">Latin Soul / Chill Hop</p>
+                </div>
+                <div class="h-8 w-px bg-zinc-800"></div>
+                <div>
+                    <p class="text-xs text-zinc-600 mb-1">Release Date</p>
+                    <input type="date" id="releaseDate" class="bg-transparent border-none text-sm font-mono font-bold text-violet-400 p-0">
+                </div>
+            </div>
+            <div id="countdown" class="px-4 py-2 rounded-xl bg-violet-500/10 text-violet-400 font-bold"></div>
         </header>
 
         <!-- Content -->
         <div class="flex-1 overflow-y-auto p-6">
+            
+            <!-- COMMAND CENTER -->
             <div id="command" class="tab-content active space-y-6">
-                <!-- Command Center code remains unchanged -->
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="card p-5 relative">
+                        <svg id="readinessRing" class="absolute top-4 right-4" width="70" height="70"></svg>
+                        <p class="text-xs uppercase tracking-wider text-zinc-600 mb-2">Readiness</p>
+                        <p id="readinessLabel" class="text-2xl font-bold">Setup</p>
+                        <p class="text-xs text-zinc-500 mt-1">Preparación general</p>
+                    </div>
+                    <div class="card p-5">
+                        <p class="text-xs uppercase tracking-wider text-zinc-600 mb-2">Tasks</p>
+                        <p class="text-2xl font-bold font-mono"><span id="tasksCompleted">0</span><span class="text-zinc-600">/15</span></p>
+                        <div class="progress-bar mt-3"><div id="tasksProgress" class="progress-fill" style="width: 0%"></div></div>
+                    </div>
+                    <div class="card p-5">
+                        <p class="text-xs uppercase tracking-wider text-zinc-600 mb-2">Budget</p>
+                        <p class="text-2xl font-bold font-mono">$<span id="budgetSpent">0</span></p>
+                        <p class="text-xs text-zinc-500 mt-1">de $<span id="budgetTotal">500</span></p>
+                    </div>
+                    <div class="card p-5" id="splitsCard">
+                        <p class="text-xs uppercase tracking-wider text-zinc-600 mb-2">Splits</p>
+                        <p id="splitsTotal" class="text-2xl font-bold font-mono text-emerald-400">100%</p>
+                        <p id="splitsWarning" class="text-xs text-rose-400 mt-1 hidden">⚠ Debe = 100%</p>
+                    </div>
+                </div>
+
+                <div id="overdueAlert" class="card p-5 border-rose-500/30 bg-rose-500/5 hidden">
+                    <p class="font-bold text-rose-400">⚠ <span id="overdueCount">0</span> tareas atrasadas</p>
+                    <button onclick="switchTab('tasks')" class="text-xs text-rose-400 hover:underline mt-2">Ver timeline →</button>
+                </div>
+
+                <div class="card p-6">
+                    <p class="text-xs uppercase tracking-wider text-zinc-600 mb-3">Tu Secreto Estratégico</p>
+                    <textarea id="secretInput" rows="3" class="resize-none" placeholder="¿Qué verdad conoces que el mercado no ve? Define tu ventaja única..."></textarea>
+                </div>
+
+                <div class="card p-6">
+                    <p class="text-xs uppercase tracking-wider text-zinc-600 mb-4">Audiencia Avatar</p>
+                    <div class="grid grid-cols-4 gap-4">
+                        <div>
+                            <label class="text-xs text-zinc-500 block mb-2">Rango de edad</label>
+                            <input type="text" id="avatarAge" value="18-35">
+                        </div>
+                        <div>
+                            <label class="text-xs text-zinc-500 block mb-2">Intereses</label>
+                            <input type="text" id="avatarInterests" value="Lo-fi, beats, café">
+                        </div>
+                        <div>
+                            <label class="text-xs text-zinc-500 block mb-2">Plataformas</label>
+                            <input type="text" id="avatarPlatforms" value="Spotify, TikTok">
+                        </div>
+                        <div>
+                            <label class="text-xs text-zinc-500 block mb-2">Pain Point</label>
+                            <input type="text" id="avatarPain" value="Necesitan música para concentrarse">
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- TASKS -->
+            <div id="tasks" class="tab-content space-y-4">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold">Launch Timeline</h2>
+                        <p class="text-sm text-zinc-500"><span id="tasksCompletedLabel">0</span> de 15 completadas</p>
+                    </div>
+                </div>
+                <div id="tasksList" class="space-y-6"></div>
+            </div>
+
+            <!-- METRICS -->
+            <div id="metrics" class="tab-content space-y-6">
+                <h2 class="text-xl font-bold">Audience Metrics</h2>
+                <div id="metricsGrid" class="grid grid-cols-2 gap-4"></div>
+            </div>
+
+            <!-- SPLITS -->
+            <div id="splits" class="tab-content space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold">IP Protection</h2>
+                    <div id="splitsTotalBadge" class="px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400">Total: 100%</div>
+                </div>
+                <div class="card p-6">
+                    <div id="splitsList" class="space-y-3"></div>
+                    <button onclick="addSplit()" class="w-full py-3 mt-4 border border-dashed border-zinc-700 rounded-xl text-sm text-zinc-500 hover:text-violet-400 hover:border-violet-500 transition-all">
+                        + Agregar Colaborador
+                    </button>
+                </div>
+                <div class="card p-6">
+                    <h3 class="font-bold mb-4">Checklist Legal</h3>
+                    <div class="grid grid-cols-2 gap-3" id="legalChecklist"></div>
+                </div>
+            </div>
+
+            <!-- BUDGET -->
+            <div id="budget" class="tab-content space-y-6">
+                <h2 class="text-xl font-bold">Capital Ops</h2>
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="card p-5">
+                        <p class="text-xs uppercase text-zinc-600 mb-2">Total Budget</p>
+                        <p class="text-2xl font-bold font-mono">$<span id="budgetTotalDisplay">500</span></p>
+                    </div>
+                    <div class="card p-5">
+                        <p class="text-xs uppercase text-zinc-600 mb-2">Asignado</p>
+                        <p class="text-2xl font-bold font-mono text-violet-400">$<span id="budgetAllocated">480</span></p>
+                    </div>
+                    <div class="card p-5">
+                        <p class="text-xs uppercase text-zinc-600 mb-2">Gastado</p>
+                        <p class="text-2xl font-bold font-mono">$<span id="budgetSpentDisplay">0</span></p>
+                    </div>
+                    <div class="card p-5">
+                        <p class="text-xs uppercase text-zinc-600 mb-2">Disponible</p>
+                        <p class="text-2xl font-bold font-mono text-emerald-400">$<span id="budgetAvailable">480</span></p>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <h3 class="font-bold mb-4">Desglose por Categoría</h3>
+                    <div id="budgetList" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- OUTREACH -->
+            <div id="outreach" class="tab-content space-y-6">
+                <h2 class="text-xl font-bold">PR Pipeline</h2>
+                <div class="card overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-zinc-800/50 text-xs uppercase text-zinc-500">
+                            <tr>
+                                <th class="px-6 py-4 text-left">Playlist</th>
+                                <th class="px-6 py-4 text-left">Reach</th>
+                                <th class="px-6 py-4 text-left">Difficulty</th>
+                                <th class="px-6 py-4 text-left">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playlistTable" class="divide-y divide-zinc-800"></tbody>
+                    </table>
+                </div>
+                <div class="card p-6">
+                    <h3 class="font-bold mb-4">Pitch Template</h3>
+                    <div class="bg-zinc-900 rounded-xl p-4 text-sm text-zinc-400 leading-relaxed" id="pitchTemplate"></div>
+                </div>
+            </div>
+
         </div>
     </main>
 
-  <script>
-        // Existing state and configurations here
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // STATE
+        // ═══════════════════════════════════════════════════════════════
+        
         const state = {
-            project: { name: 'My First Release', releaseDate: '2025-12-30', secret: '' },
+            project: {
+                name: 'Mi Primer Release',
+                releaseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                secret: ''
+            },
+            metrics: {
+                spotify: { current: 250, goal: 1000, label: 'Spotify Listeners' },
+                instagram: { current: 180, goal: 500, label: 'Instagram' },
+                tiktok: { current: 400, goal: 1000, label: 'TikTok' },
+                presaves: { current: 45, goal: 200, label: 'Pre-saves' }
+            },
+            splits: [
+                { id: 1, name: 'Artista Principal', role: 'Master + Publishing', percentage: 100 }
+            ],
+            budget: {
+                total: 500,
+                items: [
+                    { id: 1, category: 'Distribución', allocated: 30, spent: 25 },
+                    { id: 2, category: 'Visuales', allocated: 150, spent: 80 },
+                    { id: 3, category: 'Ads', allocated: 200, spent: 0 },
+                    { id: 4, category: 'PR/Promo', allocated: 100, spent: 50 }
+                ]
+            },
+            completedTasks: [],
+            playlists: [
+                { name: 'Lo-Fi Beats', reach: '5M+', difficulty: 'Hard', status: 'not-started' },
+                { name: 'Chill Vibes', reach: '3M+', difficulty: 'Hard', status: 'pitched' },
+                { name: 'Fresh Finds', reach: '800K', difficulty: 'Medium', status: 'not-started' },
+                { name: 'The Cozy Chill', reach: '200K', difficulty: 'Easy', status: 'accepted' }
+            ],
+            legalChecks: []
         };
 
-   </script>  END TEMPLATE
+        const TASKS = [
+            { phase: 'pre', week: -8, task: 'Master final aprobado', category: 'AUDIO', critical: true },
+            { phase: 'pre', week: -8, task: 'Split sheet firmado', category: 'LEGAL', critical: true },
+            { phase: 'pre', week: -7, task: 'Registrar en PRO', category: 'LEGAL', critical: true },
+            { phase: 'pre', week: -6, task: 'Cover art brief', category: 'VISUAL', critical: false },
+            { phase: 'dist', week: -5, task: 'Cover art final (3000x3000)', category: 'VISUAL', critical: true },
+            { phase: 'dist', week: -5, task: 'Subir a distribuidor', category: 'DIST', critical: true },
+            { phase: 'dist', week: -4, task: 'Configurar pre-save links', category: 'DIST', critical: true },
+            { phase: 'promo', week: -3, task: 'Pitch editorial Spotify', category: 'PR', critical: true },
+            { phase: 'promo', week: -2, task: 'Enviar a curadores indie', category: 'PR', critical: false },
+            { phase: 'promo', week: -1, task: 'Teaser en stories', category: 'CONTENT', critical: false },
+            { phase: 'promo', week: -1, task: 'Configurar píxel tracking', category: 'GROWTH', critical: true },
+            { phase: 'launch', week: 0, task: 'Post de lanzamiento', category: 'CONTENT', critical: true },
+            { phase: 'launch', week: 0, task: 'Activar ads', category: 'GROWTH', critical: true },
+            { phase: 'post', week: 1, task: 'Análisis semana 1', category: 'ANALYTICS', critical: true },
+            { phase: 'post', week: 2, task: 'Optimizar ads', category: 'GROWTH', critical: false }
+        ];
+
+        const LEGAL_ITEMS = [
+            'Split sheet firmado por todos',
+            'Registro en PRO (ASCAP/BMI/SGAE)',
+            'Licencia de samples (si aplica)',
+            'Contrato de distribución revisado',
+            'Metadata verificada en DSPs',
+            'ISRC asignado'
+        ];
+
+        const CATEGORY_COLORS = {
+            AUDIO: 'bg-cyan-500/20 text-cyan-400',
+            LEGAL: 'bg-rose-500/20 text-rose-400',
+            VISUAL: 'bg-fuchsia-500/20 text-fuchsia-400',
+            DIST: 'bg-blue-500/20 text-blue-400',
+            PR: 'bg-amber-500/20 text-amber-400',
+            CONTENT: 'bg-emerald-500/20 text-emerald-400',
+            GROWTH: 'bg-orange-500/20 text-orange-400',
+            ANALYTICS: 'bg-indigo-500/20 text-indigo-400'
+        };
+
+        // ═══════════════════════════════════════════════════════════════
+        // STORAGE
+        // ═══════════════════════════════════════════════════════════════
+        
+        function saveState() {
+            localStorage.setItem('co_state', JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('co_state');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                Object.assign(state, parsed);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // UTILS
+        // ═══════════════════════════════════════════════════════════════
+        
+        function getDaysUntil() {
+            const release = new Date(state.project.releaseDate);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            release.setHours(0,0,0,0);
+            return Math.ceil((release - today) / (1000 * 60 * 60 * 24));
+        }
+
+        function getWeeksUntil() {
+            return Math.ceil(getDaysUntil() / 7);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // RENDER FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════
+        
+        function renderAll() {
+            renderHeader();
+            renderCommand();
+            renderTasks();
+            renderMetrics();
+            renderSplits();
+            renderBudget();
+            renderOutreach();
+        }
+
+        function renderHeader() {
+            document.getElementById('projectName').value = state.project.name;
+            document.getElementById('releaseDate').value = state.project.releaseDate;
+            
+            const days = getDaysUntil();
+            const countdown = document.getElementById('countdown');
+            countdown.textContent = `${Math.abs(days)} días ${days > 0 ? 'para lanzamiento' : 'desde lanzamiento'}`;
+            countdown.className = `px-4 py-2 rounded-xl font-bold ${days <= 7 ? 'bg-rose-500/10 text-rose-400' : 'bg-violet-500/10 text-violet-400'}`;
+        }
+
+        function renderCommand() {
+            const weeksUntil = getWeeksUntil();
+            const taskProgress = (state.completedTasks.length / TASKS.length) * 100;
+            const metricsProgress = Object.values(state.metrics).reduce((a, m) => a + Math.min(m.current / m.goal, 1), 0) / Object.keys(state.metrics).length * 100;
+            const splitsTotal = state.splits.reduce((s, x) => s + x.percentage, 0);
+            const readiness = (taskProgress + metricsProgress + (splitsTotal === 100 ? 100 : 0)) / 3;
+
+            // Readiness ring
+            const ring = document.getElementById('readinessRing');
+            const radius = 28;
+            const circumference = radius * 2 * Math.PI;
+            const offset = circumference - (readiness / 100) * circumference;
+            ring.innerHTML = `
+                <circle stroke="#27272a" fill="transparent" stroke-width="6" r="${radius}" cx="35" cy="35" style="transform: rotate(-90deg); transform-origin: center;"/>
+                <circle stroke="#8b5cf6" fill="transparent" stroke-width="6" stroke-linecap="round" r="${radius}" cx="35" cy="35" 
+                    stroke-dasharray="${circumference} ${circumference}" stroke-dashoffset="${offset}" 
+                    style="transform: rotate(-90deg); transform-origin: center; transition: stroke-dashoffset 0.5s;"/>
+                <text x="35" y="40" text-anchor="middle" fill="#fafafa" font-size="14" font-weight="bold">${readiness.toFixed(0)}%</text>
+            `;
+
+            document.getElementById('readinessLabel').textContent = readiness >= 80 ? 'Ready' : readiness >= 50 ? 'In Progress' : 'Setup';
+            document.getElementById('tasksCompleted').textContent = state.completedTasks.length;
+            document.getElementById('tasksProgress').style.width = `${taskProgress}%`;
+
+            const totalSpent = state.budget.items.reduce((s, i) => s + i.spent, 0);
+            document.getElementById('budgetSpent').textContent = totalSpent;
+            document.getElementById('budgetTotal').textContent = state.budget.total;
+
+            document.getElementById('splitsTotal').textContent = `${splitsTotal}%`;
+            document.getElementById('splitsTotal').className = `text-2xl font-bold font-mono ${splitsTotal === 100 ? 'text-emerald-400' : 'text-rose-400'}`;
+            document.getElementById('splitsWarning').classList.toggle('hidden', splitsTotal === 100);
+
+            // Overdue tasks
+            const overdueCount = TASKS.filter((t, i) => t.week < -weeksUntil && !state.completedTasks.includes(i)).length;
+            document.getElementById('overdueAlert').classList.toggle('hidden', overdueCount === 0);
+            document.getElementById('overdueCount').textContent = overdueCount;
+
+            document.getElementById('secretInput').value = state.project.secret || '';
+        }
+
+        function renderTasks() {
+            const weeksUntil = getWeeksUntil();
+            document.getElementById('tasksCompletedLabel').textContent = state.completedTasks.length;
+
+            const phases = {
+                pre: { name: 'Pre-Producción', tasks: [] },
+                dist: { name: 'Distribución', tasks: [] },
+                promo: { name: 'Pre-Lanzamiento', tasks: [] },
+                launch: { name: 'Lanzamiento', tasks: [] },
+                post: { name: 'Post-Launch', tasks: [] }
+            };
+
+            TASKS.forEach((task, idx) => {
+                phases[task.phase].tasks.push({ ...task, idx });
+            });
+
+            let html = '';
+            for (const [key, phase] of Object.entries(phases)) {
+                const completedInPhase = phase.tasks.filter(t => state.completedTasks.includes(t.idx)).length;
+                html += `
+                    <div class="card p-5">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold">${phase.name}</h3>
+                            <span class="text-xs text-zinc-500">${completedInPhase}/${phase.tasks.length}</span>
+                        </div>
+                        <div class="space-y-2">
+                `;
+                
+                phase.tasks.forEach(task => {
+                    const isComplete = state.completedTasks.includes(task.idx);
+                    const isOverdue = task.week < -weeksUntil && !isComplete;
+                    const isThisWeek = task.week === -weeksUntil || (task.week === 0 && weeksUntil <= 0);
+                    const weekLabel = task.week === 0 ? 'Launch' : `${task.week}w`;
+                    
+                    html += `
+                        <div onclick="toggleTask(${task.idx})" class="flex items-center gap-4 p-4 rounded-xl cursor-pointer hover:bg-white/5 transition-all
+                            ${isComplete ? 'opacity-50' : ''} 
+                            ${isOverdue ? 'border-l-4 border-rose-500 bg-rose-500/5' : ''} 
+                            ${isThisWeek && !isComplete ? 'border-l-4 border-violet-500 bg-violet-500/5' : 'border border-zinc-800'}">
+                            <div class="w-6 h-6 rounded-lg border-2 flex items-center justify-center ${isComplete ? 'bg-violet-600 border-violet-600' : 'border-zinc-700'}">
+                                ${isComplete ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' : ''}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-bold uppercase px-2 py-0.5 rounded ${CATEGORY_COLORS[task.category] || 'bg-zinc-700 text-zinc-400'}">${task.category}</span>
+                                    ${task.critical ? '<span class="text-xs font-bold uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-400">CRÍTICO</span>' : ''}
+                                    <span class="text-xs font-mono text-zinc-600">${weekLabel}</span>
+                                </div>
+                                <p class="text-sm ${isComplete ? 'line-through text-zinc-600' : 'text-zinc-200'}">${task.task}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div></div>`;
+            }
+            
+            document.getElementById('tasksList').innerHTML = html;
+        }
+
+        function renderMetrics() {
+            let html = '';
+            for (const [key, metric] of Object.entries(state.metrics)) {
+                const progress = metric.goal > 0 ? Math.min((metric.current / metric.goal) * 100, 100) : 0;
+                const progressColor = progress >= 100 ? 'text-emerald-400' : progress >= 50 ? 'text-amber-400' : 'text-zinc-500';
+                
+                html += `
+                    <div class="card p-5 group">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500">${metric.label}</span>
+                            <button onclick="editMetric('${key}')" class="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-violet-400 transition-all">✎</button>
+                        </div>
+                        <div id="metric-${key}-display">
+                            <div class="flex items-end gap-2 mb-3">
+                                <span class="text-3xl font-bold font-mono">${metric.current.toLocaleString()}</span>
+                                <span class="text-zinc-600 text-sm mb-1">/ ${metric.goal.toLocaleString()}</span>
+                            </div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+                            <span class="text-xs font-mono mt-2 inline-block ${progressColor}">${progress.toFixed(1)}%</span>
+                        </div>
+                        <div id="metric-${key}-edit" class="hidden space-y-2">
+                            <div class="flex gap-2">
+                                <input type="number" id="metric-${key}-current" value="${metric.current}" class="text-sm" placeholder="Current">
+                                <input type="number" id="metric-${key}-goal" value="${metric.goal}" class="text-sm" placeholder="Goal">
+                            </div>
+                            <button onclick="saveMetric('${key}')" class="w-full py-2 bg-violet-600 rounded-lg text-xs font-bold hover:bg-violet-500">Guardar</button>
+                        </div>
+                    </div>
+                `;
+            }
+            document.getElementById('metricsGrid').innerHTML = html;
+        }
+
+        function renderSplits() {
+            const total = state.splits.reduce((s, x) => s + x.percentage, 0);
+            
+            document.getElementById('splitsTotalBadge').className = `px-4 py-2 rounded-xl ${total === 100 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`;
+            document.getElementById('splitsTotalBadge').textContent = `Total: ${total}%`;
+
+            let html = '';
+            state.splits.forEach((split, idx) => {
+                html += `
+                    <div class="flex items-center justify-between p-4 bg-zinc-800/50 rounded-xl group">
+                        <div class="flex-1 mr-4">
+                            <input type="text" value="${split.name}" onchange="updateSplit(${idx}, 'name', this.value)" 
+                                class="bg-transparent border-none p-0 font-semibold text-sm focus:outline-none w-full">
+                            <input type="text" value="${split.role}" onchange="updateSplit(${idx}, 'role', this.value)"
+                                class="bg-transparent border-none p-0 text-xs text-zinc-500 focus:outline-none w-full">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="number" value="${split.percentage}" onchange="updateSplit(${idx}, 'percentage', +this.value)"
+                                class="w-16 text-center text-lg font-bold font-mono text-violet-400 bg-transparent border border-zinc-700 rounded-lg py-1">
+                            <span class="text-zinc-500">%</span>
+                            ${state.splits.length > 1 ? `<button onclick="removeSplit(${idx})" class="opacity-0 group-hover:opacity-100 text-rose-400 hover:text-rose-300">✕</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('splitsList').innerHTML = html;
+
+            // Legal checklist
+            let legalHtml = '';
+            LEGAL_ITEMS.forEach((item, idx) => {
+                const checked = state.legalChecks.includes(idx);
+                legalHtml += `
+                    <div onclick="toggleLegal(${idx})" class="flex items-center gap-3 p-3 bg-zinc-900/50 rounded-xl cursor-pointer hover:bg-zinc-800/50">
+                        <div class="w-5 h-5 rounded border-2 flex items-center justify-center ${checked ? 'bg-violet-600 border-violet-600' : 'border-zinc-700'}">
+                            ${checked ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' : ''}
+                        </div>
+                        <span class="text-sm ${checked ? 'text-zinc-500 line-through' : ''}">${item}</span>
+                    </div>
+                `;
+            });
+            document.getElementById('legalChecklist').innerHTML = legalHtml;
+        }
+
+        function renderBudget() {
+            const totalAllocated = state.budget.items.reduce((s, i) => s + i.allocated, 0);
+            const totalSpent = state.budget.items.reduce((s, i) => s + i.spent, 0);
+            
+            document.getElementById('budgetTotalDisplay').textContent = state.budget.total;
+            document.getElementById('budgetAllocated').textContent = totalAllocated;
+            document.getElementById('budgetSpentDisplay').textContent = totalSpent;
+            document.getElementById('budgetAvailable').textContent = totalAllocated - totalSpent;
+
+            let html = '';
+            state.budget.items.forEach((item, idx) => {
+                const progress = item.allocated > 0 ? (item.spent / item.allocated) * 100 : 0;
+                const isOver = item.spent > item.allocated;
+                
+                html += `
+                    <div class="flex items-center justify-between p-4 bg-zinc-800/30 rounded-xl group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-1 h-10 bg-zinc-700 rounded-full overflow-hidden">
+                                <div class="w-full ${isOver ? 'bg-rose-500' : 'bg-violet-500'}" style="height: ${Math.min(progress, 100)}%"></div>
+                            </div>
+                            <span class="font-medium">${item.category}</span>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <div class="text-right">
+                                <p class="text-xs text-zinc-600">Asignado</p>
+                                <input type="number" value="${item.allocated}" onchange="updateBudget(${idx}, 'allocated', +this.value)"
+                                    class="w-20 text-right bg-transparent border-none p-0 font-mono focus:outline-none">
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-zinc-600">Gastado</p>
+                                <input type="number" value="${item.spent}" onchange="updateBudget(${idx}, 'spent', +this.value)"
+                                    class="w-20 text-right bg-transparent border-none p-0 font-mono text-zinc-400 focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('budgetList').innerHTML = html;
+        }
+
+        function renderOutreach() {
+            let html = '';
+            state.playlists.forEach((pl, idx) => {
+                const diffColors = {
+                    Easy: 'bg-emerald-500/10 text-emerald-400',
+                    Medium: 'bg-amber-500/10 text-amber-400',
+                    Hard: 'bg-rose-500/10 text-rose-400'
+                };
+                
+                html += `
+                    <tr class="hover:bg-zinc-800/30">
+                        <td class="px-6 py-4 font-semibold">${pl.name}</td>
+                        <td class="px-6 py-4 font-mono text-violet-400">${pl.reach}</td>
+                        <td class="px-6 py-4">
+                            <span class="text-xs px-2 py-1 rounded ${diffColors[pl.difficulty]}">${pl.difficulty}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <select onchange="updatePlaylist(${idx}, this.value)" class="text-xs bg-zinc-800 border-zinc-700 rounded-lg py-1 px-2">
+                                <option value="not-started" ${pl.status === 'not-started' ? 'selected' : ''}>Not Started</option>
+                                <option value="pitched" ${pl.status === 'pitched' ? 'selected' : ''}>Pitched</option>
+                                <option value="accepted" ${pl.status === 'accepted' ? 'selected' : ''}>Accepted ✓</option>
+                                <option value="rejected" ${pl.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('playlistTable').innerHTML = html;
+
+            // Pitch template
+            const releaseDate = new Date(state.project.releaseDate);
+            const dateStr = releaseDate.toLocaleDateString('es-ES', { month: 'long', day: 'numeric' });
+            document.getElementById('pitchTemplate').innerHTML = `
+                Hi [Curator Name],<br><br>
+                I'm releasing "<strong>${state.project.name}</strong>" on <strong>${dateStr}</strong> – a Latin Soul / Chill Hop track that I think would be a great fit for [Playlist Name].<br><br>
+                ${state.project.secret ? `Quick context: ${state.project.secret}<br><br>` : ''}
+                Here's a private link: [Spotify Pre-save / Private Link]<br><br>
+                Would love for you to consider it. Thanks for your time!<br><br>
+                Best,<br>
+                [Tu nombre]
+            `;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // EVENT HANDLERS
+        // ═══════════════════════════════════════════════════════════════
+        
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function toggleTask(idx) {
+            if (state.completedTasks.includes(idx)) {
+                state.completedTasks = state.completedTasks.filter(i => i !== idx);
+            } else {
+                state.completedTasks.push(idx);
+            }
+            saveState();
+            renderAll();
+        }
+
+        function editMetric(key) {
+            document.getElementById(`metric-${key}-display`).classList.add('hidden');
+            document.getElementById(`metric-${key}-edit`).classList.remove('hidden');
+        }
+
+        function saveMetric(key) {
+            state.metrics[key].current = parseInt(document.getElementById(`metric-${key}-current`).value) || 0;
+            state.metrics[key].goal = parseInt(document.getElementById(`metric-${key}-goal`).value) || 0;
+            saveState();
+            renderAll();
+        }
+
+        function addSplit() {
+            state.splits.push({ id: Date.now(), name: 'Nuevo Colaborador', role: 'Rol', percentage: 0 });
+            saveState();
+            renderSplits();
+        }
+
+        function updateSplit(idx, field, value) {
+            state.splits[idx][field] = value;
+            saveState();
+            renderSplits();
+            renderCommand();
+        }
+
+        function removeSplit(idx) {
+            state.splits.splice(idx, 1);
+            saveState();
+            renderSplits();
+            renderCommand();
+        }
+
+        function toggleLegal(idx) {
+            if (state.legalChecks.includes(idx)) {
+                state.legalChecks = state.legalChecks.filter(i => i !== idx);
+            } else {
+                state.legalChecks.push(idx);
+            }
+            saveState();
+            renderSplits();
+        }
+
+        function updateBudget(idx, field, value) {
+            state.budget.items[idx][field] = value;
+            saveState();
+            renderBudget();
+            renderCommand();
+        }
+
+        function updatePlaylist(idx, status) {
+            state.playlists[idx].status = status;
+            saveState();
+        }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `creative-ownership-backup-${Date.now()}.json`;
+            a.click();
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════════════════
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            
+            // Bind header inputs
+            document.getElementById('projectName').addEventListener('change', e => {
+                state.project.name = e.target.value;
+                saveState();
+                renderOutreach();
+            });
+            
+            document.getElementById('releaseDate').addEventListener('change', e => {
+                state.project.releaseDate = e.target.value;
+                saveState();
+                renderAll();
+            });
+
+            document.getElementById('secretInput').addEventListener('change', e => {
+                state.project.secret = e.target.value;
+                saveState();
+                renderOutreach();
+            });
+
+            renderAll();
+        });
+    </script>
+</body>
+</html>
