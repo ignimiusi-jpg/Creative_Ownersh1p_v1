@@ -1,0 +1,2076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Ownership | Launch Command v7</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07070d;--bg1:#0f0f1a;--bg2:#151524;
+  --border:#1e1e30;--border2:#2c2c42;
+  --text:#eeeef5;--text2:#9090b0;--text3:#4a4a65;
+  --violet:#6d28d9;--violet2:#a78bfa;
+  --pink:#be185d;--green:#1db954;
+  --emerald:#10b981;--rose:#ef4444;
+  --amber:#f59e0b;--cyan:#06b6d4;--blue:#3b82f6;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --r:10px;--r2:14px;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+a{color:var(--violet2);text-decoration:none}a:hover{text-decoration:underline}
+button{cursor:pointer;font-family:var(--font);border:none}
+input,textarea,select{font-family:var(--font);font-size:13px;background:var(--bg1);border:1px solid var(--border2);color:var(--text);padding:8px 12px;border-radius:var(--r);outline:none;width:100%;transition:border-color .15s,box-shadow .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(109,40,217,.1)}
+input[type="date"]{cursor:pointer}
+select option{background:var(--bg2)}
+textarea{resize:vertical;line-height:1.6}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:244px;min-width:244px;background:rgba(7,7,13,.97);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.main-header{height:58px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(7,7,13,.9);flex-shrink:0}
+.main-body{flex:1;overflow-y:auto;padding:20px}
+
+/* ── SIDEBAR ── */
+.sidebar-brand{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.brand-icon{width:34px;height:34px;border-radius:9px;background:var(--violet);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;flex-shrink:0;color:#fff}
+.brand-name{font-weight:800;font-size:13px;line-height:1.2}
+.brand-sub{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.project-switcher{padding:10px 12px;border-bottom:1px solid var(--border)}
+.pswitch-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:7px;font-weight:700}
+.project-dropdown{position:relative}
+.project-current{background:var(--bg1);border:1px solid var(--border2);border-radius:var(--r);padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:border-color .15s}
+.project-current:hover{border-color:var(--violet)}
+.project-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.project-current-name{font-weight:600;font-size:13px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.project-arrow{font-size:10px;color:var(--text3)}
+.project-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg1);border:1px solid var(--border2);border-radius:var(--r);z-index:200;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+.project-menu.open{display:block}
+.project-menu-item{padding:9px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;transition:background .1s}
+.project-menu-item:hover{background:var(--bg2)}
+.project-menu-item.active{color:var(--violet2)}
+.project-menu-item .del-btn{margin-left:auto;font-size:11px;color:var(--text3);opacity:0;transition:opacity .15s;padding:2px 4px;border-radius:4px;background:none}
+.project-menu-item:hover .del-btn{opacity:1}
+.project-menu-item .del-btn:hover{color:var(--rose);background:rgba(239,68,68,.1)}
+.project-add{padding:9px 12px;border-top:1px solid var(--border);cursor:pointer;font-size:12px;color:var(--violet2);display:flex;align-items:center;gap:6px;transition:background .1s}
+.project-add:hover{background:rgba(109,40,217,.08)}
+.nav-section{padding:8px 8px 2px;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-weight:700;margin-top:6px}
+.nav{flex:1;padding:4px 8px 8px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:var(--r);font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;width:100%;background:none;text-align:left;transition:all .15s;border-left:2px solid transparent;margin-bottom:1px}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-item.active{background:rgba(109,40,217,.12);color:var(--violet2);border-left-color:var(--violet)}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.sidebar-footer{padding:10px 12px;border-top:1px solid var(--border)}
+.btn-secondary{background:var(--bg2);border:1px solid var(--border2);color:var(--text2);padding:8px 14px;border-radius:var(--r);font-size:12px;font-weight:600;width:100%;transition:all .15s}
+.btn-secondary:hover{background:var(--border);color:var(--text)}
+
+/* ── COMPONENTS ── */
+.card{background:rgba(15,15,26,.9);border:1px solid var(--border);border-radius:var(--r2)}
+.card-p{padding:18px}
+.card-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-weight:700;margin-bottom:12px}
+.progress-bar{height:4px;background:var(--border);border-radius:10px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--violet),var(--pink));border-radius:10px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;letter-spacing:.04em}
+.tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;letter-spacing:.03em;white-space:nowrap}
+.header-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:2px}
+.header-field input{background:transparent;border:none;font-size:14px;font-weight:700;padding:0;border-bottom:1px solid transparent;border-radius:0;width:auto;transition:border-color .15s}
+.header-field input:focus{border-bottom-color:var(--violet);box-shadow:none}
+.header-field input[type="date"]{font-family:var(--mono);color:var(--violet2);font-size:12px}
+.divider{width:1px;height:28px;background:var(--border);margin:0 8px}
+.countdown{padding:6px 14px;border-radius:var(--r);font-family:var(--mono);font-weight:700;font-size:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;align-items:center;gap:10px}
+.row-between{display:flex;align-items:center;justify-content:space-between}
+.nowrap{white-space:nowrap}
+.stat-card{padding:16px;position:relative}
+.stat-label{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);font-weight:700;margin-bottom:7px}
+.stat-value{font-size:24px;font-weight:800;font-family:var(--mono);line-height:1}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid transparent;font-family:var(--font)}
+.btn-primary{background:var(--violet);color:#fff}
+.btn-primary:hover{background:#5b21b6}
+.btn-ghost{background:var(--bg2);border-color:var(--border2);color:var(--text2)}
+.btn-ghost:hover{background:var(--border);color:var(--text)}
+.btn-green{background:var(--green);color:#000;font-weight:700}
+.btn-green:hover{background:#1ed760}
+.btn-small{padding:5px 10px;font-size:11px;border-radius:7px}
+.link-btn{background:none;border:none;padding:0;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.inner-tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.inner-tab{background:none;border:none;padding:9px 14px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-family:var(--font)}
+.inner-tab:hover{color:var(--text)}
+.inner-tab.active{color:var(--violet2);border-bottom-color:var(--violet)}
+.inner-tab-content{display:none}
+.inner-tab-content.active{display:block}
+.phase-filters{display:flex;gap:6px;flex-wrap:wrap}
+.phase-btn{background:var(--bg2);border:1px solid var(--border2);color:var(--text2);padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;font-family:var(--font)}
+.phase-btn:hover{border-color:var(--violet);color:var(--violet2)}
+.phase-btn.active{background:rgba(109,40,217,.2);border-color:var(--violet);color:var(--violet2)}
+
+/* ── CALENDAR ── */
+.cal-header-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day-hdr{text-align:center;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:6px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-cell{min-height:80px;background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:6px;cursor:pointer;transition:border-color .15s}
+.cal-cell:hover{border-color:var(--border2)}
+.cal-cell.other-month{opacity:.2}
+.cal-cell.today{border-color:var(--violet)}
+.cal-cell.release-day{background:linear-gradient(135deg,rgba(109,40,217,.25),rgba(190,24,93,.2));border-color:var(--violet)}
+.cal-cell.drag-over{border-color:var(--violet);background:rgba(109,40,217,.12)}
+.cal-num{font-size:11px;font-weight:700;color:var(--text3)}
+.cal-num.today-num{color:var(--violet2)}
+.cal-num.release-num{color:#fff}
+.cal-release-label{font-size:9px;color:rgba(255,255,255,.6);margin-top:1px;display:block}
+.cal-tasks{margin-top:4px;display:flex;flex-direction:column;gap:2px}
+.cal-task{font-size:10px;padding:2px 5px;border-radius:4px;cursor:grab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;user-select:none}
+.cal-task.done{opacity:.35;text-decoration:line-through}
+.cal-more{font-size:9px;color:var(--text3);padding:1px 4px}
+
+/* ── TIMELINE ── */
+.tl-wrap{position:relative;padding-bottom:2px}
+.tl-line{position:absolute;left:104px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--violet),rgba(28,28,46,.3))}
+.tl-item{position:relative;padding-left:124px;padding-bottom:14px;animation:fadeUp .25s ease both}
+.tl-date{position:absolute;left:0;top:2px;width:92px;text-align:right;font-size:11px;color:var(--text3);font-family:var(--mono);line-height:1.4}
+.tl-week{font-size:9px;display:block}
+.tl-moved{font-size:9px;color:var(--violet);display:block}
+.tl-dot{position:absolute;left:97px;top:6px;width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:var(--bg);transition:all .2s}
+.tl-dot.done{background:var(--violet);border-color:var(--violet);box-shadow:0 0 10px rgba(109,40,217,.5)}
+.tl-dot.current{background:var(--amber);border-color:var(--amber);box-shadow:0 0 10px rgba(245,158,11,.7)}
+.tl-dot.overdue{background:var(--rose);border-color:var(--rose)}
+.tl-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;cursor:pointer;transition:border-color .15s}
+.tl-card:hover{border-color:var(--border2)}
+.tl-card.overdue{border-color:rgba(239,68,68,.3)}
+.tl-card.done-card{opacity:.45}
+.tl-card-meta{display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap}
+
+/* ── SPLITS ── */
+.split-bar{height:26px;border-radius:8px;overflow:hidden;display:flex}
+.split-bar-seg{height:100%;transition:width .4s}
+.split-item{background:rgba(15,15,26,.7);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.split-color-bar{width:4px;height:30px;border-radius:3px;flex-shrink:0}
+.split-inputs{flex:1;min-width:0}
+.split-input-name,.split-input-role{background:transparent;border:none;width:100%;padding:0;color:var(--text)}
+.split-input-name{font-weight:600;font-size:13px}
+.split-input-role{font-size:11px;color:var(--text3);margin-top:2px}
+.split-input-name:focus,.split-input-role:focus{outline:none}
+.split-pct{width:52px;text-align:center;font-size:15px;font-weight:700;font-family:var(--mono);background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:4px}
+
+/* ── BUDGET ── */
+.budget-item{background:rgba(15,15,26,.6);border:1px solid var(--border);border-radius:var(--r);padding:12px 13px;margin-bottom:6px}
+.budget-total-input{font-family:var(--mono);font-size:24px;font-weight:800;background:transparent;border:none;border-bottom:1px dashed var(--border2);padding:0 0 2px;color:var(--text);outline:none;width:130px}
+.budget-total-input:focus{border-bottom-color:var(--violet)}
+.budget-num{width:78px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:5px 8px;font-family:var(--mono);font-size:13px;text-align:right}
+
+/* ── SPOTIFY ── */
+.spotify-card{background:linear-gradient(145deg,rgba(29,185,84,.07),rgba(13,13,20,.9));border:1px solid rgba(29,185,84,.22);border-radius:var(--r2)}
+.spotify-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.spotify-stat{padding:12px 13px}
+.spotify-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.spotify-stat-val{font-size:20px;font-weight:800;font-family:var(--mono)}
+
+/* ── PR TABLE ── */
+.pr-table{width:100%;border-collapse:collapse}
+.pr-table th{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);padding:9px 13px;text-align:left;background:rgba(15,15,26,.5);font-weight:700}
+.pr-table td{padding:9px 13px;border-top:1px solid var(--border);font-size:13px;vertical-align:middle}
+.pr-table tr:hover td{background:rgba(255,255,255,.02)}
+.pr-table input{background:transparent;border:none;padding:0;font-size:13px;width:100%}
+.pr-table input:focus{outline:none}
+
+/* ── CHAT ── */
+.chat-window{height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px}
+.chat-msg{padding:11px 13px;border-radius:var(--r);font-size:13px;line-height:1.65}
+.chat-msg.user{background:rgba(109,40,217,.1);border:1px solid rgba(109,40,217,.18);margin-left:40px}
+.chat-msg.assistant{background:var(--bg1);border:1px solid var(--border);margin-right:40px}
+.chat-msg.loading{opacity:.55}
+.chat-msg-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.chat-msg.user .chat-msg-label{color:var(--violet2)}
+.chat-msg.assistant .chat-msg-label{color:var(--text3)}
+.chat-msg .chat-body{white-space:pre-wrap}
+.quick-prompts{display:flex;flex-wrap:wrap;gap:6px}
+.quick-btn{background:var(--bg2);border:1px solid var(--border2);color:var(--text2);padding:5px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:var(--font)}
+.quick-btn:hover{border-color:var(--violet);color:var(--violet2);background:rgba(109,40,217,.08)}
+
+/* ── ALERTS ── */
+.alert{padding:11px 15px;border-radius:var(--r);border:1px solid}
+.alert-rose{background:rgba(239,68,68,.05);border-color:rgba(239,68,68,.25);color:#fca5a5}
+
+/* ── UPCOMING ── */
+.upcoming-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--r);border:1px solid;cursor:pointer;transition:background .1s;margin-bottom:5px}
+.upcoming-item:hover{background:rgba(255,255,255,.03)}
+.upcoming-item.normal{border-color:rgba(30,30,48,.6)}
+.upcoming-item.overdue{border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.03)}
+.upcoming-item.today{border-color:rgba(245,158,11,.2);background:rgba(245,158,11,.03)}
+.check-box{width:17px;height:17px;border-radius:5px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.check-box.checked{background:var(--violet);border-color:var(--violet)}
+.ring-svg{position:absolute;top:14px;right:14px}
+
+/* ── SOCIAL ── */
+.social-platform-toggle{display:flex;background:var(--bg2);border:1px solid var(--border2);border-radius:11px;padding:3px;width:fit-content}
+.platform-btn{padding:7px 18px;border-radius:8px;font-size:13px;font-weight:700;border:none;background:transparent;color:var(--text3);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px;font-family:var(--font)}
+.platform-btn.active.tiktok{background:#000;color:#fff;box-shadow:0 2px 12px rgba(0,0,0,.5)}
+.platform-btn.active.instagram{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff}
+.platform-btn:not(.active):hover{color:var(--text)}
+.audit-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.audit-stat{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px}
+.audit-stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:700;margin-bottom:7px}
+.audit-stat-val{font-size:21px;font-weight:800;font-family:var(--mono)}
+.audit-stat-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.eng-score{width:80px;height:80px}
+.audit-history-table{width:100%;border-collapse:collapse}
+.audit-history-table th{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);padding:9px 13px;text-align:left;background:rgba(15,15,26,.5);font-weight:700;border-bottom:1px solid var(--border)}
+.audit-history-table td{padding:9px 13px;border-bottom:1px solid rgba(28,28,46,.5);font-size:12px;vertical-align:middle}
+.audit-history-table tr:last-child td{border-bottom:none}
+.audit-history-table tr:hover td{background:rgba(255,255,255,.02)}
+.eng-chip{display:inline-block;padding:2px 8px;border-radius:6px;font-family:var(--mono);font-size:11px;font-weight:700}
+.eng-great{background:rgba(16,185,129,.2);color:#6ee7b7}
+.eng-good{background:rgba(245,158,11,.2);color:#fcd34d}
+.eng-low{background:rgba(239,68,68,.2);color:#fca5a5}
+.benchmark-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(28,28,46,.5)}
+.benchmark-row:last-child{border-bottom:none}
+.tiktok-grad{background:linear-gradient(135deg,#010101,#1a1a1a);border:1px solid rgba(255,255,255,.08)}
+.ig-grad{background:linear-gradient(135deg,rgba(240,148,51,.08),rgba(188,24,136,.08));border:1px solid rgba(188,24,136,.2)}
+
+/* ── STRATEGY INDEX ── */
+.idx-section{margin-bottom:20px}
+.idx-section-header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2) var(--r2) 0 0;border-bottom:none}
+.idx-section-icon{font-size:20px}
+.idx-section-title{font-weight:800;font-size:14px;flex:1}
+.idx-section-prog{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.idx-table{width:100%;border-collapse:collapse;background:var(--bg1);border:1px solid var(--border);border-radius:0 0 var(--r2) var(--r2);overflow:hidden}
+.idx-table th{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);padding:9px 16px;text-align:left;background:rgba(15,15,26,.8);font-weight:700}
+.idx-table td{padding:11px 16px;border-top:1px solid var(--border);vertical-align:middle}
+.idx-table tr:hover td{background:rgba(255,255,255,.02)}
+.idx-item-name{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.idx-item-icon{font-size:14px}
+.idx-status-btn{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid;cursor:pointer;transition:all .15s;font-family:var(--font);white-space:nowrap}
+.idx-status-ns{background:rgba(74,74,101,.2);border-color:rgba(74,74,101,.4);color:var(--text3)}
+.idx-status-ip{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#fcd34d}
+.idx-status-done{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.35);color:#6ee7b7}
+.idx-section-progress-bar{height:3px;background:var(--border);border-radius:0;overflow:hidden}
+.idx-section-progress-fill{height:100%;transition:width .4s;border-radius:0}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg1);border:1px solid var(--border2);border-radius:var(--r2);padding:22px;width:400px;max-width:90vw;animation:fadeUp .2s ease}
+.modal h3{font-size:15px;font-weight:800;margin-bottom:5px}
+.modal p{font-size:13px;color:var(--text2);margin-bottom:18px}
+.modal-field{margin-bottom:12px}
+.modal-field label{display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;font-weight:700}
+.modal-actions{display:flex;gap:8px;margin-top:18px}
+.modal-actions .btn{flex:1;justify-content:center}
+
+/* ── CATEGORY COLORS ── */
+.cat-AUDIO{background:rgba(6,182,212,.18);color:#67e8f9}
+.cat-LEGAL{background:rgba(244,63,94,.18);color:#fda4af}
+.cat-VISUAL{background:rgba(217,70,239,.18);color:#f0abfc}
+.cat-DIST{background:rgba(59,130,246,.18);color:#93c5fd}
+.cat-PR{background:rgba(245,158,11,.18);color:#fcd34d}
+.cat-CONTENT{background:rgba(16,185,129,.18);color:#6ee7b7}
+.cat-GROWTH{background:rgba(249,115,22,.18);color:#fdba74}
+.cat-ANALYTICS{background:rgba(99,102,241,.18);color:#c7d2fe}
+.cat-STRATEGY{background:rgba(139,92,246,.18);color:#c4b5fd}
+.cat-crit{background:rgba(239,68,68,.18);color:#fca5a5}
+
+/* ── MISC ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .25s ease both}
+.hidden{display:none!important}
+.text-rose{color:#fca5a5}.text-amber{color:#fcd34d}.text-emerald{color:#6ee7b7}
+.text-violet{color:var(--violet2)}.text-green{color:var(--green)}.text-muted{color:var(--text3)}
+.text-sm{font-size:12px}.mono-text{font-family:var(--mono)}
+.info-box{background:rgba(109,40,217,.06);border:1px solid rgba(109,40,217,.15);border-radius:var(--r);padding:13px 15px}
+.info-box ol{padding-left:16px}
+.info-box li{margin-bottom:4px;color:var(--text2);font-size:12px}
+hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+.select-sm{background:var(--bg2);border:1px solid var(--border2);color:var(--text2);padding:4px 8px;border-radius:7px;font-size:11px;font-family:var(--font);cursor:pointer}
+.select-sm:focus{border-color:var(--violet);outline:none}
+.legend-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+.legend-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3)}
+.legend-wrap{display:flex;flex-wrap:wrap;gap:12px}
+.step-desc{background:rgba(109,40,217,.04);border:1px solid rgba(109,40,217,.1);border-radius:8px;padding:9px 12px;margin-top:7px;font-size:12px;color:var(--text2);line-height:1.65}
+</style>
+</head>
+<body>
+
+<!-- NEW PROJECT MODAL -->
+<div class="modal-overlay" id="newProjectModal">
+  <div class="modal fade-up">
+    <h3>New Release ✨</h3>
+    <p>Each release has its own timeline, splits, budget and metrics.</p>
+    <div class="modal-field"><label>Release Name</label><input type="text" id="newProjectName" placeholder="e.g. Nostalgia EP, Summer 2025..."></div>
+    <div class="modal-field"><label>Release Date</label><input type="date" id="newProjectDate"></div>
+    <div class="modal-field"><label>Genre</label><input type="text" id="newProjectGenre" placeholder="Latin Soul, Trap, Indie..."></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeNewProjectModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createProject()">Create Release</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">◉</div>
+    <div><div class="brand-name">Creative Ownership</div><div class="brand-sub">Launch Command v7</div></div>
+  </div>
+  <div class="project-switcher">
+    <div class="pswitch-label">Active Release</div>
+    <div class="project-dropdown" id="projectDropdown">
+      <div class="project-current" onclick="toggleProjectMenu()">
+        <div class="project-dot" id="activeProjectDot"></div>
+        <span class="project-current-name" id="activeProjectLabel">—</span>
+        <span class="project-arrow">▾</span>
+      </div>
+      <div class="project-menu" id="projectMenu">
+        <div id="projectMenuItems"></div>
+        <div class="project-add" onclick="openNewProjectModal()">＋ New Release</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav" id="mainNav">
+    <div class="nav-section">Overview</div>
+    <button class="nav-item active" onclick="switchTab('command')"><span class="nav-icon">◉</span> Command Center</button>
+    <div class="nav-section">Planning</div>
+    <button class="nav-item" onclick="switchTab('campaign')"><span class="nav-icon">📋</span> Campaign Steps</button>
+    <button class="nav-item" onclick="switchTab('index')"><span class="nav-icon">📚</span> Strategy Index</button>
+    <button class="nav-item" onclick="switchTab('calendar')"><span class="nav-icon">📅</span> Calendar</button>
+    <button class="nav-item" onclick="switchTab('timeline')"><span class="nav-icon">⏱</span> Timeline</button>
+    <div class="nav-section">Analytics</div>
+    <button class="nav-item" onclick="switchTab('spotify')"><span class="nav-icon">🎵</span> Spotify</button>
+    <button class="nav-item" onclick="switchTab('social')"><span class="nav-icon">📲</span> Social Media</button>
+    <div class="nav-section">Finance & Legal</div>
+    <button class="nav-item" onclick="switchTab('splits')"><span class="nav-icon">✂</span> SPLIT$</button>
+    <button class="nav-item" onclick="switchTab('budget')"><span class="nav-icon">💰</span> Budget</button>
+    <div class="nav-section">Growth</div>
+    <button class="nav-item" onclick="switchTab('outreach')"><span class="nav-icon">📡</span> PR + AI Ideas</button>
+  </div>
+  <div class="sidebar-footer">
+    <button class="btn-secondary" onclick="exportData()">📥 Export JSON</button>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+  <header class="main-header">
+    <div class="row" style="gap:10px">
+      <div class="header-field">
+        <label>Release</label>
+        <input type="text" id="projectName" style="width:190px">
+      </div>
+      <div class="divider"></div>
+      <div class="header-field">
+        <label>Release Date</label>
+        <input type="date" id="releaseDate">
+      </div>
+    </div>
+    <div class="countdown" id="countdown"></div>
+  </header>
+  <div class="main-body">
+
+  <!-- ═══ COMMAND CENTER ═══ -->
+  <div id="command" class="tab-content active stack">
+    <div id="spotifyWidget"></div>
+    <div class="grid4">
+      <div class="card stat-card">
+        <svg id="readinessRing" class="ring-svg" width="58" height="58"></svg>
+        <div class="stat-label">Readiness</div>
+        <div class="stat-value" id="readinessLabel" style="font-size:16px;margin-top:4px">Setup</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">Tasks</div>
+        <div class="stat-value mono-text"><span id="tasksCompleted">0</span><span style="color:var(--text3)">/</span><span id="totalTasksCount" style="color:var(--text3)">16</span></div>
+        <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" id="tasksProgress" style="width:0%"></div></div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">Budget Spent</div>
+        <div class="stat-value mono-text">$<span id="budgetSpent">0</span></div>
+        <div class="stat-sub">of $<span id="budgetTotalHeader">500</span></div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">SPLIT$</div>
+        <div class="stat-value mono-text" id="splitsTotal">100%</div>
+        <div class="stat-sub" id="splitsStatus">Balanced</div>
+      </div>
+    </div>
+    <div class="alert alert-rose hidden" id="overdueAlert" style="display:flex;align-items:center;justify-content:space-between">
+      <span>⚠ <span id="overdueCount">0</span> overdue tasks</span>
+      <button class="link-btn text-rose" onclick="switchTab('timeline')">View timeline →</button>
+    </div>
+    <div class="card card-p">
+      <div class="row-between" style="margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0">Upcoming Tasks</div>
+        <button class="link-btn text-violet" onclick="switchTab('calendar')">View calendar →</button>
+      </div>
+      <div id="upcomingTasks"></div>
+    </div>
+    <div class="card card-p">
+      <div class="card-title">Strategic Edge</div>
+      <textarea id="secretInput" rows="3" placeholder="What truth do you know that the market doesn't see yet?"></textarea>
+    </div>
+  </div>
+
+  <!-- ═══ CAMPAIGN STEPS ═══ -->
+  <div id="campaign" class="tab-content stack">
+    <div class="row-between">
+      <div>
+        <div style="font-size:18px;font-weight:800">Campaign Steps</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px">Professional single/album release guide — click any step to toggle complete</div>
+      </div>
+      <div class="row" style="gap:8px">
+        <span style="font-size:12px;color:var(--text3)">Completed</span>
+        <span style="font-weight:700;font-family:var(--mono);font-size:14px"><span id="campaignCompleted">0</span>/<span id="campaignTotal">16</span></span>
+      </div>
+    </div>
+    <div class="phase-filters" id="campaignPhaseFilters">
+      <button class="phase-btn active" onclick="filterCampaignPhase('all',this)">All Steps</button>
+      <button class="phase-btn" onclick="filterCampaignPhase('pre',this)">Pre-Release</button>
+      <button class="phase-btn" onclick="filterCampaignPhase('during',this)">During Release</button>
+      <button class="phase-btn" onclick="filterCampaignPhase('post',this)">Post-Release</button>
+    </div>
+    <div id="campaignStepsContainer" class="stack"></div>
+  </div>
+
+  <!-- ═══ STRATEGY INDEX ═══ -->
+  <div id="index" class="tab-content stack">
+    <div>
+      <div style="font-size:18px;font-weight:800">Strategy Index</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:3px">All release strategy tools, templates and guides — track your progress across each area</div>
+    </div>
+    <div id="strategyIndexContainer" class="stack"></div>
+  </div>
+
+  <!-- ═══ CALENDAR ═══ -->
+  <div id="calendar" class="tab-content stack">
+    <div class="row-between">
+      <div>
+        <div style="font-size:18px;font-weight:800">Launch Calendar</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px">Drag tasks between days to reschedule</div>
+      </div>
+      <div class="row" style="gap:8px">
+        <button class="btn btn-ghost btn-small" onclick="changeMonth(-1)">←</button>
+        <span id="currentMonth" style="font-weight:700;font-family:var(--mono);font-size:13px;width:150px;text-align:center"></span>
+        <button class="btn btn-ghost btn-small" onclick="changeMonth(1)">→</button>
+      </div>
+    </div>
+    <div class="legend-wrap">
+      <div class="legend-row"><div class="legend-dot" style="background:linear-gradient(90deg,var(--violet),var(--pink))"></div>Release Day</div>
+      <div class="legend-row"><div class="legend-dot" style="background:var(--rose)"></div>Overdue</div>
+      <div class="legend-row"><div class="legend-dot" style="background:var(--amber)"></div>This week</div>
+      <div class="legend-row"><div class="legend-dot" style="background:var(--emerald)"></div>Completed</div>
+      <div class="legend-row"><div class="legend-dot" style="border:2px solid var(--violet);background:transparent"></div>Today</div>
+    </div>
+    <div class="cal-header-grid">
+      <div class="cal-day-hdr">Sun</div><div class="cal-day-hdr">Mon</div><div class="cal-day-hdr">Tue</div>
+      <div class="cal-day-hdr">Wed</div><div class="cal-day-hdr">Thu</div><div class="cal-day-hdr">Fri</div><div class="cal-day-hdr">Sat</div>
+    </div>
+    <div class="cal-grid" id="calendarGrid"></div>
+    <div class="card card-p hidden fade-up" id="selectedDayTasks">
+      <div class="card-title" id="selectedDayTitle">Tasks for this day</div>
+      <div id="selectedDayTasksList"></div>
+    </div>
+  </div>
+
+  <!-- ═══ TIMELINE ═══ -->
+  <div id="timeline" class="tab-content stack">
+    <div class="row-between">
+      <div>
+        <div style="font-size:18px;font-weight:800">Timeline</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px">Click a task to mark it complete</div>
+      </div>
+      <div class="row" style="gap:8px">
+        <span style="font-size:12px;color:var(--text3)">Completed</span>
+        <span style="font-weight:700;font-family:var(--mono)"><span id="timelineCompleted">0</span>/<span id="tlTotal">16</span></span>
+      </div>
+    </div>
+    <div class="phase-filters" id="phaseFilters">
+      <button class="phase-btn active" onclick="filterPhase('all',this)">All</button>
+      <button class="phase-btn" onclick="filterPhase('pre',this)">Pre-Release</button>
+      <button class="phase-btn" onclick="filterPhase('during',this)">During Release</button>
+      <button class="phase-btn" onclick="filterPhase('post',this)">Post-Release</button>
+    </div>
+    <div class="card card-p">
+      <div class="tl-wrap" id="timelineContainer"></div>
+    </div>
+  </div>
+
+  <!-- ═══ SPOTIFY ═══ -->
+  <div id="spotify" class="tab-content stack">
+    <div class="row" style="gap:10px">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+      <div><div style="font-size:18px;font-weight:800">Spotify Analytics</div><div style="font-size:12px;color:var(--text3)">Real metrics from Spotify for Artists</div></div>
+    </div>
+    <div class="spotify-card" style="padding:15px 18px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:10px">Artist Profile</div>
+      <div class="row" style="gap:10px">
+        <input type="text" id="spotifyLinkInput" placeholder="https://open.spotify.com/artist/...">
+        <button class="btn btn-green btn-small nowrap" onclick="connectSpotify()">Connect</button>
+      </div>
+    </div>
+    <div class="card card-p" id="spotifySyncPanel">
+      <div class="row-between" style="margin-bottom:12px">
+        <div>
+          <div style="font-size:13px;font-weight:700">Sync Metrics</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Copy exact numbers from <a href="https://artists.spotify.com" target="_blank">Spotify for Artists ↗</a></div>
+        </div>
+        <button class="btn btn-ghost btn-small hidden" id="spotifyEditBtn" onclick="toggleSpotifyEdit()">Edit</button>
+      </div>
+      <div id="spotifyForm">
+        <div class="info-box" style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:7px">How to get your metrics:</div>
+          <ol>
+            <li>Open <strong>Spotify for Artists</strong> → Home</li>
+            <li>Copy <strong>Monthly Listeners</strong> from your profile header</li>
+            <li>Go to <strong>Audience</strong> → copy Followers</li>
+            <li>Go to <strong>Music</strong> → select your release → copy Streams</li>
+          </ol>
+        </div>
+        <div class="grid2" style="gap:10px;margin-bottom:12px">
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Monthly Listeners</label><input type="number" id="inputMonthlyListeners" placeholder="e.g. 1250" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Followers</label><input type="number" id="inputFollowers" placeholder="e.g. 450" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Streams (28 days)</label><input type="number" id="inputStreams28" placeholder="e.g. 5000" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Streams (7 days)</label><input type="number" id="inputStreams7" placeholder="e.g. 1200" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Saves (28 days)</label><input type="number" id="inputSaves" placeholder="e.g. 320" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Playlist Reach</label><input type="number" id="inputPlaylistReach" placeholder="e.g. 800" min="0"></div>
+        </div>
+        <div class="row" style="gap:10px">
+          <button class="btn btn-green" style="flex:1;justify-content:center" onclick="saveSpotifyStats()">Save Metrics</button>
+          <div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:4px">Capture date</label><input type="date" id="spotifySyncDate" style="width:138px"></div>
+        </div>
+      </div>
+      <div id="spotifyDisplay" class="hidden">
+        <div class="spotify-grid" id="spotifyStatsDisplay"></div>
+        <div style="font-size:10px;color:var(--text3);text-align:right;margin-top:10px" id="spotifySyncDateDisplay"></div>
+      </div>
+    </div>
+    <div class="spotify-card hidden" id="spotifyEmbed" style="padding:15px 18px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:10px">Artist Profile Preview</div>
+      <div id="embedContainer"></div>
+    </div>
+  </div>
+
+  <!-- ═══ SPLIT$ ═══ -->
+  <div id="splits" class="tab-content stack">
+    <div class="row-between">
+      <div><div style="font-size:18px;font-weight:800">SPLIT$</div><div style="font-size:12px;color:var(--text3);margin-top:3px">Rights and royalty distribution</div></div>
+      <div class="badge" id="splitsTotalBadge" style="font-size:15px;font-family:var(--mono);padding:5px 12px;border-radius:9px">100%</div>
+    </div>
+    <div class="card card-p">
+      <div class="card-title">Visual Distribution</div>
+      <div class="split-bar" id="splitBar"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px" id="splitLegend"></div>
+    </div>
+    <div class="grid2">
+      <div class="card card-p" style="border-color:rgba(109,40,217,.2)">
+        <div style="font-size:11px;font-weight:700;color:var(--violet2);margin-bottom:5px">MASTER RIGHTS</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">Controls the recording. Generates income from streaming, sync licensing, and media usage.</div>
+      </div>
+      <div class="card card-p" style="border-color:rgba(190,24,93,.2)">
+        <div style="font-size:11px;font-weight:700;color:#f9a8d4;margin-bottom:5px">PUBLISHING</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">Controls the composition. Generates performance and mechanical royalties.</div>
+      </div>
+    </div>
+    <div class="card card-p">
+      <div class="row-between" style="margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0">Participants</div>
+        <div class="row" style="gap:6px">
+          <button class="btn btn-ghost btn-small" onclick="addSplit('master')">+ Master</button>
+          <button class="btn btn-ghost btn-small" onclick="addSplit('publishing')" style="border-color:rgba(190,24,93,.3);color:#f9a8d4">+ Publishing</button>
+        </div>
+      </div>
+      <div id="splitsList"></div>
+    </div>
+    <div class="card card-p">
+      <div class="card-title">Registration Codes</div>
+      <div class="grid2">
+        <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:5px">ISRC (per track)</label><input type="text" id="isrcCode" placeholder="US-S1Z-24-00001"></div>
+        <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:5px">UPC (album/EP)</label><input type="text" id="upcCode" placeholder="123456789012"></div>
+        <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:5px">Registered PRO</label>
+          <select id="proSelect"><option value="">Select...</option><option>ASCAP</option><option>BMI</option><option>SESAC</option><option>SGAE</option><option>SAYCO</option><option>SCD</option><option>SOBODAYCOM</option><option>Other</option></select>
+        </div>
+        <div><label style="font-size:11px;color:var(--text3);display:block;margin-bottom:5px">Work # (PRO)</label><input type="text" id="proWorkId" placeholder="Your PRO registration ID"></div>
+      </div>
+      <button class="btn btn-ghost" style="margin-top:12px" onclick="saveCodes()">Save Codes</button>
+    </div>
+  </div>
+
+  <!-- ═══ BUDGET ═══ -->
+  <div id="budget" class="tab-content stack">
+    <div style="font-size:18px;font-weight:800">Budget</div>
+    <div class="grid4">
+      <div class="card stat-card">
+        <div class="stat-label">Total Available</div>
+        <div style="display:flex;align-items:baseline;gap:4px">
+          <span style="color:var(--text3);font-size:17px">$</span>
+          <input class="budget-total-input" type="number" id="budgetTotalInput" value="500" onchange="updateBudgetTotal(+this.value)">
+        </div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">Allocated</div>
+        <div class="stat-value mono-text" style="color:var(--violet2)">$<span id="budgetAllocatedDisplay">0</span></div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">Spent</div>
+        <div class="stat-value mono-text" id="budgetSpentDisplay">$0</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">Remaining</div>
+        <div class="stat-value mono-text" style="color:var(--emerald)" id="budgetAvailable">$500</div>
+      </div>
+    </div>
+    <div class="card card-p">
+      <div class="row-between" style="margin-bottom:5px">
+        <span style="font-size:12px;color:var(--text3)">Budget utilization</span>
+        <span style="font-size:12px;font-weight:700;font-family:var(--mono)" id="budgetPct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="budgetProgress" style="width:0%"></div></div>
+    </div>
+    <div class="card card-p">
+      <div class="row-between" style="margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0">Budget Lines</div>
+        <button class="btn btn-ghost btn-small" onclick="addBudgetItem()">+ Add</button>
+      </div>
+      <div id="budgetList"></div>
+    </div>
+  </div>
+
+  <!-- ═══ PR + AI IDEAS ═══ -->
+  <div id="outreach" class="tab-content">
+    <div style="font-size:18px;font-weight:800;margin-bottom:12px">PR + AI Ideas</div>
+    <div class="inner-tabs">
+      <button class="inner-tab active" onclick="switchInnerTab('pr-pipeline',this)">Playlist Pipeline</button>
+      <button class="inner-tab" onclick="switchInnerTab('ai-ideas',this)">AI Ideas</button>
+    </div>
+    <div class="inner-tab-content active" id="pr-pipeline">
+      <div class="stack">
+        <div class="card" style="overflow:hidden">
+          <div class="row-between" style="padding:12px 16px;border-bottom:1px solid var(--border)">
+            <div class="card-title" style="margin-bottom:0">Playlists & Curators</div>
+            <button class="btn btn-ghost btn-small" onclick="addPlaylist()">+ Add</button>
+          </div>
+          <table class="pr-table">
+            <thead><tr><th>Playlist / Curator</th><th>Reach</th><th>Pitch Date</th><th>Status</th><th></th></tr></thead>
+            <tbody id="playlistTable"></tbody>
+          </table>
+        </div>
+        <div class="grid4">
+          <div class="card" style="padding:13px;text-align:center"><div class="stat-value mono-text" id="prTotal">0</div><div style="font-size:11px;color:var(--text3);margin-top:4px">Total</div></div>
+          <div class="card" style="padding:13px;text-align:center"><div class="stat-value mono-text text-amber" id="prPitched">0</div><div style="font-size:11px;color:var(--text3);margin-top:4px">Pitched</div></div>
+          <div class="card" style="padding:13px;text-align:center"><div class="stat-value mono-text text-emerald" id="prAccepted">0</div><div style="font-size:11px;color:var(--text3);margin-top:4px">Accepted</div></div>
+          <div class="card" style="padding:13px;text-align:center"><div class="stat-value mono-text text-rose" id="prRejected">0</div><div style="font-size:11px;color:var(--text3);margin-top:4px">Rejected</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="inner-tab-content" id="ai-ideas">
+      <div class="stack">
+        <div class="card card-p" id="aiKeyPanel">
+          <div class="row" style="gap:10px;margin-bottom:12px">
+            <div style="width:34px;height:34px;border-radius:9px;background:rgba(109,40,217,.2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🤖</div>
+            <div><div style="font-weight:700;font-size:13px">AI Ideas Assistant</div><div style="font-size:11px;color:var(--text3)">Powered by Claude AI</div></div>
+          </div>
+          <div class="row" style="gap:10px">
+            <input type="password" id="apiKeyInput" placeholder="Anthropic API Key (sk-ant-...)">
+            <button class="btn btn-primary btn-small nowrap" onclick="saveApiKey()">Connect</button>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:5px">Stored locally. Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></div>
+        </div>
+        <div class="card card-p">
+          <div class="card-title">Release Context</div>
+          <div class="grid2">
+            <div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:5px">Genre</label><input type="text" id="aiGenre" placeholder="Latin Soul, Chill Hop..."></div>
+            <div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:5px">Mood / Vibe</label><input type="text" id="aiMood" placeholder="Nostalgic, energetic..."></div>
+            <div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:5px">Audience</label><input type="text" id="aiAudience" placeholder="18-25, Latam, urban..."></div>
+            <div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:5px">Platforms</label><input type="text" id="aiPlatforms" placeholder="Instagram, TikTok, Spotify..."></div>
+          </div>
+        </div>
+        <div class="card card-p">
+          <div class="card-title">Quick Ideas</div>
+          <div class="quick-prompts">
+            <button class="quick-btn" onclick="quickPrompt('content')">Content ideas</button>
+            <button class="quick-btn" onclick="quickPrompt('hooks')">TikTok/Reels hooks</button>
+            <button class="quick-btn" onclick="quickPrompt('bio')">Artist bio</button>
+            <button class="quick-btn" onclick="quickPrompt('pitch')">Curator pitch email</button>
+            <button class="quick-btn" onclick="quickPrompt('caption')">Launch captions</button>
+            <button class="quick-btn" onclick="quickPrompt('ads')">Ad copy</button>
+            <button class="quick-btn" onclick="quickPrompt('research')">Market research</button>
+            <button class="quick-btn" onclick="quickPrompt('strategy')">Full strategy</button>
+          </div>
+        </div>
+        <div class="card card-p">
+          <div class="chat-window" id="chatMessages">
+            <div class="chat-msg assistant"><div class="chat-msg-label">Assistant</div><div class="chat-body">Hey! I'm your launch assistant. I can help with content ideas, promotion strategies, market research, and more. Connect your API key above to get started, or use the quick idea buttons.</div></div>
+          </div>
+          <div class="row" style="gap:10px;margin-top:10px">
+            <input type="text" id="chatInput" placeholder="Ask anything about your release..." onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="btn btn-primary btn-small nowrap" onclick="sendChat()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SOCIAL AUDIT ═══ -->
+  <div id="social" class="tab-content">
+    <div style="font-size:18px;font-weight:800;margin-bottom:4px">Social Media</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Audit and growth tracking</div>
+    <div class="social-platform-toggle" style="margin-bottom:18px">
+      <button class="platform-btn active tiktok" id="btn-tiktok" onclick="setSocialPlatform('tiktok')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>
+        TikTok
+      </button>
+      <button class="platform-btn instagram" id="btn-instagram" onclick="setSocialPlatform('instagram')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        Instagram
+      </button>
+    </div>
+    <div class="card card-p" style="margin-bottom:12px">
+      <div class="card-title">Profile</div>
+      <div style="display:flex;gap:10px">
+        <input type="text" id="socialHandle" placeholder="@yourhandle" style="flex:1">
+        <input type="url" id="socialUrl" placeholder="Profile URL (optional)" style="flex:2">
+        <button class="btn btn-primary btn-small nowrap" onclick="saveSocialProfile()">Save</button>
+      </div>
+    </div>
+    <div class="card card-p" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0">New Audit</div>
+        <input type="date" id="auditDate" style="width:148px;font-size:12px;padding:5px 9px">
+      </div>
+      <div id="tiktokFields">
+        <div class="grid3" style="gap:10px;margin-bottom:12px">
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Followers</label><input type="number" id="tt_followers" placeholder="e.g. 12500" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Following</label><input type="number" id="tt_following" placeholder="e.g. 300" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Total Likes</label><input type="number" id="tt_totalLikes" placeholder="e.g. 85000" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Avg Views/Video</label><input type="number" id="tt_avgViews" placeholder="e.g. 4200" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Avg Likes/Video</label><input type="number" id="tt_avgLikes" placeholder="e.g. 350" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Avg Comments</label><input type="number" id="tt_avgComments" placeholder="e.g. 45" min="0"></div>
+        </div>
+        <div class="grid2" style="gap:10px">
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Avg Shares/Video</label><input type="number" id="tt_avgShares" placeholder="e.g. 80" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Notes</label><input type="text" id="tt_notes" placeholder="Top content, trends, observations..."></div>
+        </div>
+      </div>
+      <div id="instagramFields" style="display:none">
+        <div class="grid3" style="gap:10px;margin-bottom:12px">
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Followers</label><input type="number" id="ig_followers" placeholder="e.g. 8400" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Following</label><input type="number" id="ig_following" placeholder="e.g. 500" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Total Posts</label><input type="number" id="ig_posts" placeholder="e.g. 120" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Avg Likes/Post</label><input type="number" id="ig_avgLikes" placeholder="e.g. 420" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Avg Comments</label><input type="number" id="ig_avgComments" placeholder="e.g. 28" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Avg Reach/Post</label><input type="number" id="ig_avgReach" placeholder="e.g. 3200" min="0"></div>
+        </div>
+        <div class="grid2" style="gap:10px">
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Avg Saves/Post</label><input type="number" id="ig_avgSaves" placeholder="e.g. 55" min="0"></div>
+          <div><label style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;font-weight:700">Notes</label><input type="text" id="ig_notes" placeholder="Stories, reels, posts, observations..."></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:14px;width:100%;justify-content:center" onclick="saveAuditSnapshot()">Save Audit</button>
+    </div>
+    <div id="socialCurrentStats" class="hidden" style="margin-bottom:12px">
+      <div class="audit-grid" id="socialStatsGrid"></div>
+    </div>
+    <div id="socialHealthPanel" style="display:none;gap:12px;grid-template-columns:1fr 1fr;margin-bottom:12px">
+      <div class="card card-p">
+        <div class="card-title">Engagement Score</div>
+        <div style="display:flex;align-items:center;gap:18px">
+          <svg class="eng-score" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="30" fill="none" stroke="var(--border)" stroke-width="8"/>
+            <circle id="engScoreArc" cx="40" cy="40" r="30" fill="none" stroke="#6ee7b7" stroke-width="8" stroke-linecap="round" stroke-dasharray="188.5 188.5" stroke-dashoffset="188.5" style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset .6s"/>
+            <text id="engScoreText" x="40" y="45" text-anchor="middle" fill="var(--text)" font-size="15" font-weight="800" font-family="DM Mono">--%</text>
+          </svg>
+          <div>
+            <div id="engScoreLabel" style="font-size:20px;font-weight:800;margin-bottom:4px">—</div>
+            <div id="engScoreDesc" style="font-size:12px;color:var(--text3);line-height:1.5;max-width:200px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card card-p">
+        <div class="card-title">Industry Benchmarks</div>
+        <div id="benchmarkList"></div>
+      </div>
+    </div>
+    <div class="card" id="socialHistoryCard" style="overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)">
+        <div class="card-title" style="margin-bottom:0">Audit History</div>
+        <span id="socialAuditCount" style="font-size:12px;color:var(--text3)">0 entries</span>
+      </div>
+      <div id="socialHistoryEmpty" style="padding:30px;text-align:center;color:var(--text3);font-size:13px">Save your first audit to start tracking growth</div>
+      <div id="socialHistoryTable" class="hidden"></div>
+    </div>
+    <div class="card card-p hidden" id="socialChartCard">
+      <div class="card-title">Followers Growth</div>
+      <canvas id="growthChart" height="130"></canvas>
+    </div>
+  </div>
+
+  </div><!-- /main-body -->
+</main>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// DATA: CAMPAIGN STEPS
+// ══════════════════════════════════════════════════
+var CAMPAIGN_STEPS = [
+  { num:1,  phase:'pre',    cat:'STRATEGY', timing:'6 weeks before release', critical:true,
+    title:'Collate All Artist and Project Assets',
+    desc:'Gather and file all assets for the campaign: artist photos, press materials, logos, audio files, and all creative assets. Organize them in a consistent folder structure so the whole team can access them.' },
+  { num:2,  phase:'pre',    cat:'STRATEGY', timing:'6 weeks before release', critical:true,
+    title:"Define the Artist's Target Demographic",
+    desc:"Establish the target audience for your project to inform the rollout and marketing targets. Define age range, location, interests, listening habits, and preferred social platforms." },
+  { num:3,  phase:'pre',    cat:'STRATEGY', timing:'6 weeks before release', critical:true,
+    title:'Set Campaign Goals & Budget',
+    desc:'Develop goals for the single or album campaign and establish the overall budget. Define KPIs: stream targets, playlist placements, social growth, and press features.' },
+  { num:4,  phase:'pre',    cat:'LEGAL',    timing:'6 weeks before release', critical:false,
+    title:'Set Collaborative Goals (Label to Artist)',
+    desc:'Host a creative brainstorm with your team to align on campaign ideas. Confirm responsibilities, timelines, and expectations between all collaborators and stakeholders.' },
+  { num:5,  phase:'pre',    cat:'STRATEGY', timing:'6 weeks before release', critical:true,
+    title:'Define Your Marketing Budget',
+    desc:'Break down budget allocation across ads, PR, visuals, distribution, and playlist pitching. Use a marketing budget template to document and track every line item.' },
+  { num:6,  phase:'pre',    cat:'CONTENT',  timing:'6 weeks before release', critical:true,
+    title:'Develop Creative Marketing Plan',
+    desc:'Solidify the marketing plan for your release. Outline content pillars, key messages, visual direction, and rollout cadence. Use your budget allocation to inform your steps.' },
+  { num:7,  phase:'during', cat:'DIST',     timing:'6 weeks before release', critical:true,
+    title:'Ingest Music to DSPs & Create Smartlink',
+    desc:'Upload all assets and music to streaming platforms. Create a Smartlink (Pre-Save Link) and send to the artist for use across all channels. Submit for editorial consideration at this stage.' },
+  { num:8,  phase:'during', cat:'PR',       timing:'5–6 weeks before release', critical:true,
+    title:'Create One Sheet / Press Release',
+    desc:'Create the One Sheet and Press Release as a Google Document. Include: artist bio, release info, key quotes, press photo, streaming links, and contact information.' },
+  { num:9,  phase:'during', cat:'PR',       timing:'5 weeks before release', critical:false,
+    title:'Develop Publicity and Radio Plan',
+    desc:'Outline target publications, blogs, radio stations, podcasts, and tastemakers. Define your press narrative and the key story angles you will pitch.' },
+  { num:10, phase:'during', cat:'DIST',     timing:'5 weeks before release', critical:true,
+    title:'Define DSP Playlisting Targets & Goals',
+    desc:'Research and outline target playlists on Spotify and Apple Music by genre, mood, and follower count. Prepare pitch materials for editorial and independent curators.' },
+  { num:11, phase:'during', cat:'PR',       timing:'5 weeks before release', critical:false,
+    title:'Outline Press & Radio Targets',
+    desc:'Build a database of press and radio contacts with name, publication, email, and relevant coverage history. Prioritize based on your campaign goals.' },
+  { num:12, phase:'during', cat:'PR',       timing:'4 weeks before release', critical:true,
+    title:'Begin Press & Radio Pitching',
+    desc:'Start emailing press and radio targets. Send personalized pitches with one sheet, streaming links, and press release. Track all outreach and schedule follow-ups.' },
+  { num:13, phase:'during', cat:'DIST',     timing:'2 weeks before release', critical:true,
+    title:'Begin Pitching to DSPs (Spotify, Apple)',
+    desc:'Pitch for editorial playlist consideration 2 weeks before release, using the Spotify for Artists pitch tool. Write a compelling pitch description highlighting mood, genre, and story.' },
+  { num:14, phase:'during', cat:'CONTENT',  timing:'Monday of release week', critical:true,
+    title:'Create Release Day Plan for Wider Team',
+    desc:'Create a Release Day Plan and email it to the artist and all team members. Include a detailed schedule, responsibilities per person, and all links and assets needed for launch day.' },
+  { num:15, phase:'post',   cat:'DIST',     timing:'Release day', critical:true,
+    title:'Flip Smartlink Live and Check DSPs',
+    desc:'On release morning, verify all Smartlink buttons redirect correctly to each store. Confirm the song is live on all distribution platforms. Flip the link live manually where required.' },
+  { num:16, phase:'post',   cat:'ANALYTICS',timing:'1–4 weeks after release', critical:false,
+    title:'Document Project Wins & Share with Team',
+    desc:'Track results: editorial placements, press coverage, radio spins, streaming milestones. Document all wins and prepare a comprehensive report to share with the internal team.' }
+];
+
+// Step → week offset from release day
+var STEP_WEEK = {1:-6,2:-6,3:-6,4:-6,5:-6,6:-6,7:-6,8:-5,9:-5,10:-5,11:-5,12:-4,13:-2,14:-1,15:0,16:2};
+
+// ══════════════════════════════════════════════════
+// DATA: STRATEGY INDEX
+// ══════════════════════════════════════════════════
+var STRATEGY_INDEX = [
+  {
+    id:'marketing', icon:'🎨', title:'Marketing Plan Tools',
+    color:'#f97316',
+    items:[
+      {id:'mkt1', icon:'👥', name:'Defining Artist Target Demographic',        desc:'Template to map your core listener — age, location, platforms, taste profile.'},
+      {id:'mkt2', icon:'🎯', name:'Setting Campaign Goals & Stepping Stone Artists', desc:'Goal-setting framework using reference artists to calibrate realistic milestones.'},
+      {id:'mkt3', icon:'💡', name:'Creative Marketing Brainstorm',              desc:'Structured brainstorm guide to surface the best campaign concepts before committing budget.'},
+      {id:'mkt4', icon:'💰', name:'Creating a Marketing Budget & Resource Allocation', desc:'Budget template to allocate spend across ads, PR, visuals, and distribution.'},
+      {id:'mkt5', icon:'🗺',  name:'Developing A Creative Marketing Plan',      desc:'Step-by-step guide to build a full creative marketing plan from strategy to execution.'}
+    ]
+  },
+  {
+    id:'dsp', icon:'🎧', title:'DSP Strategy & Ingestion',
+    color:'#3b82f6',
+    items:[
+      {id:'dsp1', icon:'🎵', name:'Editorial Playlist Targets & DSP Strategy', desc:'Worksheet to research and rank target playlists on Spotify and Apple Music.'},
+      {id:'dsp2', icon:'📤', name:'Ingestion — Step By Step',                  desc:'Checklist for uploading your release to distribution platforms correctly.'},
+      {id:'dsp3', icon:'📨', name:'Pitching to DSPs — Step By Step',           desc:'Guide for writing and submitting DSP pitches, including Spotify for Artists.'},
+      {id:'dsp4', icon:'🚀', name:'Release Week & Day — Step By Step',         desc:'Day-of checklist to ensure a smooth, coordinated launch across all platforms.'},
+      {id:'dsp5', icon:'📊', name:'Editorial Playlist Tracking — Table',       desc:'Tracking table to log every playlist pitch, status, reach, and outcome.'}
+    ]
+  },
+  {
+    id:'publicity', icon:'📰', title:'Publicity & Media',
+    color:'#f59e0b',
+    items:[
+      {id:'pub1', icon:'💭', name:'Initial Publicity Ideation and Planning',   desc:'Framework to develop your press narrative and identify story angles.'},
+      {id:'pub2', icon:'📋', name:'Publicity Tracker + Setting Press & Radio Targets', desc:'CRM-style tracker for all press and radio contacts, pitches, and follow-ups.'},
+      {id:'pub3', icon:'📄', name:'Creating One Sheet / Press Release',        desc:'Template and example for building a professional one-sheet and press release.'},
+      {id:'pub4', icon:'📻', name:'Press & Radio Pitching Guide',              desc:'Best practices and scripts for pitching blogs, magazines, and radio programmers.'}
+    ]
+  },
+  {
+    id:'social', icon:'🌐', title:'Social Media',
+    color:'#8b5cf6',
+    items:[
+      {id:'soc1', icon:'📱', name:'Social Media Strategy',                     desc:'High-level guide to define your social voice, content pillars, and platform priorities.'},
+      {id:'soc2', icon:'🗓', name:'Social Media Framework Plan',               desc:'Content calendar framework mapping posts from 6 weeks out through post-release.'},
+      {id:'soc3', icon:'🎵', name:'TikTok & Instagram Sound Stacking',         desc:'Technique guide for using your release audio across multiple short-form formats.'},
+      {id:'soc4', icon:'⚡', name:'Social Media — Actionable Plan and "The Playbook"', desc:'Tactical playbook with specific actions, cadence, and templates for each platform.'}
+    ]
+  },
+  {
+    id:'ads', icon:'📈', title:'Digital Advertising',
+    color:'#10b981',
+    items:[
+      {id:'ads1', icon:'🎯', name:'Digital Advertising Strategy',              desc:'Framework for setting ad objectives, audiences, budgets, and creative direction.'},
+      {id:'ads2', icon:'🔧', name:'Creating A Pixel',                          desc:'Step-by-step guide to install and verify your Facebook/Meta pixel for retargeting.'},
+      {id:'ads3', icon:'⚙',  name:'Setting Up Your Campaign',                  desc:'Walkthrough for building a complete ad campaign from audience targeting to launch.'}
+    ]
+  }
+];
+
+// ══════════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════════
+var CAT_COLORS = {
+  AUDIO:    {cls:'cat-AUDIO',    hex:'#06b6d4'},
+  LEGAL:    {cls:'cat-LEGAL',    hex:'#f43f5e'},
+  VISUAL:   {cls:'cat-VISUAL',   hex:'#d946ef'},
+  DIST:     {cls:'cat-DIST',     hex:'#3b82f6'},
+  PR:       {cls:'cat-PR',       hex:'#f59e0b'},
+  CONTENT:  {cls:'cat-CONTENT',  hex:'#10b981'},
+  GROWTH:   {cls:'cat-GROWTH',   hex:'#f97316'},
+  ANALYTICS:{cls:'cat-ANALYTICS',hex:'#6366f1'},
+  STRATEGY: {cls:'cat-STRATEGY', hex:'#8b5cf6'}
+};
+var PHASE_COLORS = {
+  pre:    {label:'Pre-Release',    hex:'#f97316'},
+  during: {label:'During Release', hex:'#3b82f6'},
+  post:   {label:'Post-Release',   hex:'#10b981'}
+};
+var SPLIT_PALETTE = ['#7c3aed','#db2777','#0891b2','#059669','#d97706','#dc2626','#9333ea','#c026d3'];
+var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var PROJECT_COLORS = ['#7c3aed','#0891b2','#059669','#db2777','#d97706','#6366f1','#f43f5e','#9333ea'];
+
+// ══════════════════════════════════════════════════
+// APP STATE
+// ══════════════════════════════════════════════════
+var app = {currentProjectId:null, projects:{}, globalAI:{apiKey:''}};
+
+function newProjectData(name, releaseDate, genre) {
+  var id = 'proj_' + Date.now();
+  var keys = Object.keys(app.projects);
+  return {
+    id: id,
+    name: name || 'New Release',
+    color: PROJECT_COLORS[keys.length % PROJECT_COLORS.length],
+    releaseDate: releaseDate || new Date(Date.now() + 42*864e5).toISOString().split('T')[0],
+    secret: '',
+    completedTasks: [],
+    taskDateOverrides: {},
+    indexStatuses: {},
+    splits: [{id:1, name:'Main Artist', role:'Master + Publishing', type:'both', percentage:100}],
+    codes: {isrc:'', upc:'', pro:'', proWorkId:''},
+    budget: {total:500, items:[
+      {id:1, category:'Distribution', allocated:30,  spent:25},
+      {id:2, category:'Visuals',      allocated:150, spent:80},
+      {id:3, category:'Ads',          allocated:200, spent:0},
+      {id:4, category:'PR',           allocated:100, spent:50}
+    ]},
+    playlists: [
+      {id:1, name:'Lo-Fi Beats',    reach:'5M+',  pitchDate:'', status:'not-started'},
+      {id:2, name:'Chill Vibes',    reach:'3M+',  pitchDate:'', status:'pitched'},
+      {id:3, name:'Fresh Finds',    reach:'800K', pitchDate:'', status:'not-started'},
+      {id:4, name:'The Cozy Chill', reach:'200K', pitchDate:'', status:'accepted'}
+    ],
+    spotify: {connected:false, artistId:'', locked:false, syncDate:'',
+      monthlyListeners:0, followers:0, streams28:0, streams7:0, saves:0, playlistReach:0},
+    ai: {genre:genre||'', mood:'', audience:'', platforms:'', chatHistory:[]},
+    social: {
+      platform: 'tiktok',
+      tiktok:   {handle:'', url:'', audits:[]},
+      instagram:{handle:'', url:'', audits:[]}
+    }
+  };
+}
+function P() { return app.projects[app.currentProjectId]; }
+
+// ══════════════════════════════════════════════════
+// PERSISTENCE
+// ══════════════════════════════════════════════════
+function saveApp() { try { localStorage.setItem('co_v7', JSON.stringify(app)); } catch(e){} }
+function loadApp() {
+  var raw = localStorage.getItem('co_v7') || localStorage.getItem('co_v6');
+  if (raw) { try { Object.assign(app, JSON.parse(raw)); } catch(e){} }
+  if (!app.projects || !Object.keys(app.projects).length) {
+    var p = newProjectData('My First Release');
+    app.projects[p.id] = p;
+    app.currentProjectId = p.id;
+  }
+  if (!app.currentProjectId || !app.projects[app.currentProjectId])
+    app.currentProjectId = Object.keys(app.projects)[0];
+  if (!app.globalAI) app.globalAI = {apiKey:''};
+  Object.values(app.projects).forEach(function(p) {
+    if (!p.taskDateOverrides) p.taskDateOverrides = {};
+    if (!p.indexStatuses)     p.indexStatuses = {};
+    if (!p.codes)             p.codes = {isrc:'',upc:'',pro:'',proWorkId:''};
+    if (!p.social)            p.social = {platform:'tiktok', tiktok:{handle:'',url:'',audits:[]}, instagram:{handle:'',url:'',audits:[]}};
+    if (!p.social.tiktok)     p.social.tiktok = {handle:'',url:'',audits:[]};
+    if (!p.social.instagram)  p.social.instagram = {handle:'',url:'',audits:[]};
+  });
+}
+
+// ══════════════════════════════════════════════════
+// PROJECT SWITCHER
+// ══════════════════════════════════════════════════
+function renderProjectSwitcher() {
+  var p = P();
+  document.getElementById('activeProjectDot').style.background = p.color;
+  document.getElementById('activeProjectLabel').textContent = p.name;
+  var html = '';
+  Object.values(app.projects).forEach(function(proj) {
+    html += '<div class="project-menu-item ' + (proj.id===app.currentProjectId?'active':'') + '" onclick="switchProject(\'' + proj.id + '\')">' +
+      '<div class="project-dot" style="background:' + proj.color + '"></div>' +
+      '<span style="flex:1;font-size:12px">' + escHtml(proj.name) + '</span>' +
+      '<span style="font-size:10px;color:var(--text3)">' + cdStr(proj.releaseDate) + '</span>' +
+      (Object.keys(app.projects).length > 1 ? '<button class="del-btn" onclick="event.stopPropagation();deleteProject(\'' + proj.id + '\')">✕</button>' : '') +
+      '</div>';
+  });
+  document.getElementById('projectMenuItems').innerHTML = html;
+}
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function cdStr(dateStr) {
+  var d = Math.ceil((new Date(dateStr) - new Date()) / 864e5);
+  return isNaN(d) ? '' : d > 0 ? d + 'd' : d === 0 ? '🚀' : '+' + Math.abs(d) + 'd';
+}
+function toggleProjectMenu() { document.getElementById('projectMenu').classList.toggle('open'); }
+document.addEventListener('click', function(e) {
+  var dd = document.getElementById('projectDropdown');
+  if (dd && !dd.contains(e.target)) document.getElementById('projectMenu').classList.remove('open');
+});
+function switchProject(id) {
+  app.currentProjectId = id;
+  saveApp();
+  document.getElementById('projectMenu').classList.remove('open');
+  loadProjectIntoUI();
+  renderAll();
+  window._phaseFilter = 'all';
+  window._campaignPhaseFilter = 'all';
+  document.querySelectorAll('.phase-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.phase-btn:first-child').forEach(function(b){ b.classList.add('active'); });
+}
+function deleteProject(id) {
+  if (Object.keys(app.projects).length <= 1) { alert('Need at least one release.'); return; }
+  if (!confirm('Delete this release? This cannot be undone.')) return;
+  delete app.projects[id];
+  if (app.currentProjectId === id) app.currentProjectId = Object.keys(app.projects)[0];
+  saveApp(); switchProject(app.currentProjectId);
+}
+
+// ══════════════════════════════════════════════════
+// NEW PROJECT MODAL
+// ══════════════════════════════════════════════════
+function openNewProjectModal() {
+  document.getElementById('projectMenu').classList.remove('open');
+  document.getElementById('newProjectModal').classList.add('open');
+  var d = new Date(); d.setDate(d.getDate() + 42);
+  document.getElementById('newProjectDate').value = d.toISOString().split('T')[0];
+  document.getElementById('newProjectName').value = '';
+  document.getElementById('newProjectGenre').value = '';
+  setTimeout(function(){ document.getElementById('newProjectName').focus(); }, 100);
+}
+function closeNewProjectModal() { document.getElementById('newProjectModal').classList.remove('open'); }
+function createProject() {
+  var name = document.getElementById('newProjectName').value.trim();
+  if (!name) { document.getElementById('newProjectName').focus(); return; }
+  var p = newProjectData(name, document.getElementById('newProjectDate').value, document.getElementById('newProjectGenre').value);
+  app.projects[p.id] = p;
+  app.currentProjectId = p.id;
+  saveApp(); closeNewProjectModal(); loadProjectIntoUI(); renderAll();
+}
+
+// ══════════════════════════════════════════════════
+// LOAD PROJECT INTO UI
+// ══════════════════════════════════════════════════
+function loadProjectIntoUI() {
+  var p = P(); if (!p) return;
+  document.getElementById('projectName').value = p.name;
+  document.getElementById('releaseDate').value = p.releaseDate;
+  document.getElementById('secretInput').value = p.secret || '';
+  document.getElementById('isrcCode').value  = p.codes.isrc || '';
+  document.getElementById('upcCode').value   = p.codes.upc  || '';
+  document.getElementById('proSelect').value  = p.codes.pro  || '';
+  document.getElementById('proWorkId').value  = p.codes.proWorkId || '';
+  var sp = p.spotify;
+  document.getElementById('spotifyLinkInput').value = sp.artistId ? 'https://open.spotify.com/artist/' + sp.artistId : '';
+  document.getElementById('inputMonthlyListeners').value = sp.monthlyListeners || '';
+  document.getElementById('inputFollowers').value  = sp.followers  || '';
+  document.getElementById('inputStreams28').value  = sp.streams28  || '';
+  document.getElementById('inputStreams7').value   = sp.streams7   || '';
+  document.getElementById('inputSaves').value      = sp.saves      || '';
+  document.getElementById('inputPlaylistReach').value = sp.playlistReach || '';
+  document.getElementById('spotifySyncDate').value = sp.syncDate || new Date().toISOString().split('T')[0];
+  if (sp.locked && sp.monthlyListeners > 0) {
+    document.getElementById('spotifyForm').classList.add('hidden');
+    document.getElementById('spotifyDisplay').classList.remove('hidden');
+    document.getElementById('spotifyEditBtn').classList.remove('hidden');
+    renderSpotifyDisplay();
+  } else {
+    document.getElementById('spotifyForm').classList.remove('hidden');
+    document.getElementById('spotifyDisplay').classList.add('hidden');
+    document.getElementById('spotifyEditBtn').classList.add('hidden');
+  }
+  if (sp.connected && sp.artistId) {
+    document.getElementById('spotifyEmbed').classList.remove('hidden');
+    document.getElementById('embedContainer').innerHTML = '<iframe style="border-radius:10px" src="https://open.spotify.com/embed/artist/' + sp.artistId + '?utm_source=generator&theme=0" width="100%" height="252" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+  } else { document.getElementById('spotifyEmbed').classList.add('hidden'); }
+  var ai = p.ai;
+  document.getElementById('aiGenre').value    = ai.genre    || '';
+  document.getElementById('aiMood').value     = ai.mood     || '';
+  document.getElementById('aiAudience').value = ai.audience || '';
+  document.getElementById('aiPlatforms').value= ai.platforms|| '';
+  if (app.globalAI.apiKey) { document.getElementById('apiKeyInput').value = app.globalAI.apiKey; renderApiKeyConnected(); }
+  document.getElementById('budgetTotalInput').value = p.budget.total;
+  if (p.social) {
+    setSocialPlatform(p.social.platform || 'tiktok', true);
+    var pd = p.social[p.social.platform || 'tiktok'];
+    document.getElementById('socialHandle').value = pd.handle || '';
+    document.getElementById('socialUrl').value    = pd.url    || '';
+  }
+}
+
+// ══════════════════════════════════════════════════
+// DATE UTILS
+// ══════════════════════════════════════════════════
+function getTaskDate(stepNum) {
+  var p = P(), idx = stepNum - 1;
+  if (p.taskDateOverrides[idx] !== undefined) return new Date(p.taskDateOverrides[idx]);
+  var r = new Date(p.releaseDate);
+  r.setDate(r.getDate() + (STEP_WEEK[stepNum] || 0) * 7);
+  return r;
+}
+function isSameDay(a,b) { return a.getDate()===b.getDate()&&a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear(); }
+function fmtDate(d) { return d.getDate() + ' ' + MONTHS[d.getMonth()].slice(0,3); }
+function fmtFull(d) { return DAYS_SHORT[d.getDay()] + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()]; }
+function fmt(n)  { n=n||0; return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1000?(n/1000).toFixed(1)+'K':String(n); }
+function fmtN(n) { n=n||0; return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1000?(n/1000).toFixed(1)+'K':n.toLocaleString(); }
+function daysUntil() {
+  var r=new Date(P().releaseDate), t=new Date(); t.setHours(0,0,0,0); r.setHours(0,0,0,0);
+  return Math.ceil((r-t)/864e5);
+}
+
+// ══════════════════════════════════════════════════
+// CAMPAIGN STEPS
+// ══════════════════════════════════════════════════
+window._campaignPhaseFilter = 'all';
+function renderCampaignSteps() {
+  var p = P(), today = new Date(); today.setHours(0,0,0,0);
+  var filter = window._campaignPhaseFilter || 'all';
+  var steps = filter === 'all' ? CAMPAIGN_STEPS : CAMPAIGN_STEPS.filter(function(s){ return s.phase === filter; });
+
+  document.getElementById('campaignCompleted').textContent = p.completedTasks.length;
+  document.getElementById('campaignTotal').textContent = CAMPAIGN_STEPS.length;
+
+  // Group by phase in order
+  var phaseOrder = ['pre','during','post'];
+  var groups = {};
+  steps.forEach(function(s){ if(!groups[s.phase]) groups[s.phase]=[]; groups[s.phase].push(s); });
+
+  var html = '';
+  phaseOrder.forEach(function(phase) {
+    if (!groups[phase]) return;
+    var phaseSteps = groups[phase];
+    var pc = PHASE_COLORS[phase];
+    var phaseCompleted = phaseSteps.filter(function(s){ return p.completedTasks.includes(s.num-1); }).length;
+    var phasePct = phaseSteps.length ? Math.round(phaseCompleted/phaseSteps.length*100) : 0;
+    html += '<div class="card" style="overflow:hidden">' +
+      '<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:rgba(15,15,26,.5)">' +
+        '<div style="width:9px;height:9px;border-radius:50%;background:' + pc.hex + ';flex-shrink:0"></div>' +
+        '<div style="font-weight:700;font-size:13px">' + pc.label + '</div>' +
+        '<div style="margin-left:auto;font-size:11px;color:var(--text3);font-family:var(--mono)">' + phaseCompleted + '/' + phaseSteps.length + '</div>' +
+        '<div style="width:80px;height:3px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;width:' + phasePct + '%;background:' + pc.hex + ';border-radius:3px;transition:width .4s"></div></div>' +
+      '</div>' +
+      '<div style="padding:10px 12px;display:flex;flex-direction:column;gap:6px">';
+
+    phaseSteps.forEach(function(s) {
+      var done = p.completedTasks.includes(s.num-1);
+      var date = getTaskDate(s.num);
+      var isOverdue = !done && date < today;
+      var isToday   = isSameDay(date, today);
+      var cc = CAT_COLORS[s.cat] || CAT_COLORS.STRATEGY;
+      var borderColor = isOverdue ? 'rgba(239,68,68,.25)' : done ? 'rgba(16,185,129,.15)' : 'var(--border)';
+      var bgColor     = isOverdue ? 'rgba(239,68,68,.03)' : done ? 'rgba(16,185,129,.02)' : 'transparent';
+
+      html += '<div onclick="toggleTask(' + (s.num-1) + ')" style="display:flex;gap:12px;padding:12px 13px;border-radius:var(--r);border:1px solid ' + borderColor + ';background:' + bgColor + ';cursor:pointer;transition:background .15s">' +
+        '<div style="flex-shrink:0;width:24px;height:24px;border-radius:7px;border:2px solid ' + (done ? 'var(--violet)' : 'var(--border2)') + ';background:' + (done ? 'var(--violet)' : 'transparent') + ';display:flex;align-items:center;justify-content:center;margin-top:1px">';
+
+      if (done) {
+        html += '<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      } else {
+        html += '<span style="font-size:10px;color:var(--text3);font-family:var(--mono);font-weight:700">' + s.num + '</span>';
+      }
+
+      html += '</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px">' +
+            '<span class="tag ' + cc.cls + '">' + s.cat + '</span>' +
+            (s.critical ? '<span class="tag cat-crit">Critical</span>' : '') +
+            '<span style="font-size:10px;color:var(--text3);font-family:var(--mono)">' + s.timing + '</span>' +
+            (isOverdue ? '<span style="font-size:10px;color:#fca5a5;font-weight:600">⚠ Overdue</span>' : '') +
+            (isToday && !done ? '<span style="font-size:10px;color:#fcd34d;font-weight:600">Today</span>' : '') +
+            (done ? '<span style="font-size:10px;color:#6ee7b7;font-weight:600;margin-left:auto">Done ✓</span>' : '') +
+          '</div>' +
+          '<div style="font-size:13px;font-weight:600;' + (done ? 'text-decoration:line-through;color:var(--text3)' : '') + '">' + escHtml(s.title) + '</div>' +
+          '<div class="step-desc">' + escHtml(s.desc) + '</div>' +
+        '</div>' +
+      '</div>';
+    });
+
+    html += '</div></div>';
+  });
+
+  document.getElementById('campaignStepsContainer').innerHTML = html;
+}
+function filterCampaignPhase(phase, btn) {
+  window._campaignPhaseFilter = phase;
+  document.querySelectorAll('#campaignPhaseFilters .phase-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderCampaignSteps();
+}
+
+// ══════════════════════════════════════════════════
+// STRATEGY INDEX
+// ══════════════════════════════════════════════════
+function cycleIndexStatus(sectionId, itemId) {
+  var p = P();
+  var key = sectionId + ':' + itemId;
+  var cur = p.indexStatuses[key] || 'ns';
+  var next = cur === 'ns' ? 'ip' : cur === 'ip' ? 'done' : 'ns';
+  p.indexStatuses[key] = next;
+  saveApp();
+  renderStrategyIndex();
+}
+function getIndexStatus(sectionId, itemId) {
+  return (P().indexStatuses || {})[(sectionId + ':' + itemId)] || 'ns';
+}
+function renderStrategyIndex() {
+  var html = '';
+  STRATEGY_INDEX.forEach(function(section) {
+    var total = section.items.length;
+    var done  = section.items.filter(function(it){ return getIndexStatus(section.id, it.id) === 'done'; }).length;
+    var ip    = section.items.filter(function(it){ return getIndexStatus(section.id, it.id) === 'ip';   }).length;
+    var pct   = total ? Math.round(done/total*100) : 0;
+
+    html += '<div class="idx-section">' +
+      '<div class="idx-section-header">' +
+        '<span class="idx-section-icon">' + section.icon + '</span>' +
+        '<span class="idx-section-title">' + section.title + '</span>' +
+        '<span class="idx-section-prog">' + done + '/' + total + ' complete</span>' +
+        (ip > 0 ? '<span style="font-size:11px;color:#fcd34d;font-family:var(--mono);margin-left:6px">' + ip + ' in progress</span>' : '') +
+      '</div>' +
+      '<div class="idx-section-progress-bar"><div class="idx-section-progress-fill" style="width:' + pct + '%;background:' + section.color + '"></div></div>' +
+      '<table class="idx-table"><thead><tr><th style="width:40%">Template / Guide</th><th>Description</th><th style="width:130px;text-align:right">Status</th></tr></thead><tbody>';
+
+    section.items.forEach(function(item) {
+      var status = getIndexStatus(section.id, item.id);
+      var btnCls = status === 'done' ? 'idx-status-btn idx-status-done' : status === 'ip' ? 'idx-status-btn idx-status-ip' : 'idx-status-btn idx-status-ns';
+      var btnTxt = status === 'done' ? '✓ Complete' : status === 'ip' ? '● In Progress' : '○ Not Started';
+      html += '<tr>' +
+        '<td><div class="idx-item-name"><span class="idx-item-icon">' + item.icon + '</span>' + escHtml(item.name) + '</div></td>' +
+        '<td style="font-size:12px;color:var(--text2);line-height:1.55">' + escHtml(item.desc) + '</td>' +
+        '<td style="text-align:right"><button class="' + btnCls + '" onclick="cycleIndexStatus(\'' + section.id + '\',\'' + item.id + '\')">' + btnTxt + '</button></td>' +
+        '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+  });
+
+  // Summary bar
+  var totalAll = STRATEGY_INDEX.reduce(function(s,sec){ return s + sec.items.length; }, 0);
+  var doneAll  = STRATEGY_INDEX.reduce(function(s,sec){
+    return s + sec.items.filter(function(it){ return getIndexStatus(sec.id, it.id) === 'done'; }).length;
+  }, 0);
+  var ipAll = STRATEGY_INDEX.reduce(function(s,sec){
+    return s + sec.items.filter(function(it){ return getIndexStatus(sec.id, it.id) === 'ip'; }).length;
+  }, 0);
+  var summaryHtml = '<div class="card card-p" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">' +
+    '<div style="font-weight:700;font-size:13px">Overall Progress</div>' +
+    '<div style="display:flex;gap:16px">' +
+      '<div style="text-align:center"><div style="font-size:20px;font-weight:800;font-family:var(--mono);color:#6ee7b7">' + doneAll + '</div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Complete</div></div>' +
+      '<div style="text-align:center"><div style="font-size:20px;font-weight:800;font-family:var(--mono);color:#fcd34d">' + ipAll + '</div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">In Progress</div></div>' +
+      '<div style="text-align:center"><div style="font-size:20px;font-weight:800;font-family:var(--mono);color:var(--text3)">' + (totalAll-doneAll-ipAll) + '</div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Not Started</div></div>' +
+    '</div>' +
+    '<div style="flex:1;min-width:120px"><div style="height:6px;background:var(--border);border-radius:10px;overflow:hidden;display:flex">' +
+      '<div style="height:100%;width:' + Math.round(doneAll/totalAll*100) + '%;background:#6ee7b7;transition:width .4s"></div>' +
+      '<div style="height:100%;width:' + Math.round(ipAll/totalAll*100)   + '%;background:#fcd34d;transition:width .4s"></div>' +
+    '</div><div style="font-size:10px;color:var(--text3);margin-top:4px;text-align:right">' + Math.round(doneAll/totalAll*100) + '% complete</div></div>' +
+    '<div style="font-size:11px;color:var(--text3)">Click any status button to cycle: Not Started → In Progress → Complete</div>' +
+    '</div>';
+
+  document.getElementById('strategyIndexContainer').innerHTML = summaryHtml + html;
+}
+
+// ══════════════════════════════════════════════════
+// CALENDAR
+// ══════════════════════════════════════════════════
+window._calMonth = new Date();
+var _dragIdx = null;
+function renderCalendar() {
+  var yr = window._calMonth.getFullYear(), mo = window._calMonth.getMonth();
+  document.getElementById('currentMonth').textContent = MONTHS[mo] + ' ' + yr;
+  var first = new Date(yr, mo, 1);
+  var start = new Date(first); start.setDate(start.getDate() - first.getDay());
+  var today = new Date(); today.setHours(0,0,0,0);
+  var release = new Date(P().releaseDate); release.setHours(0,0,0,0);
+  var weekAhead = new Date(today); weekAhead.setDate(weekAhead.getDate() + 7);
+  var allTasks = CAMPAIGN_STEPS.map(function(s){ return {s:s, date:getTaskDate(s.num), done:P().completedTasks.includes(s.num-1)}; });
+  var html = '', cur = new Date(start);
+  for (var cell = 0; cell < 42; cell++) {
+    var isCurMo  = cur.getMonth() === mo;
+    var isToday  = isSameDay(cur, today);
+    var isRelDay = isSameDay(cur, release);
+    var dayTasks = allTasks.filter(function(t){ return isSameDay(t.date, cur); });
+    var dateStr  = cur.toISOString().split('T')[0];
+    var cls = 'cal-cell' + (!isCurMo?' other-month':'') + (isToday?' today':'') + (isRelDay?' release-day':'');
+    html += '<div class="' + cls + '" onclick="calSelectDay(\'' + cur.toISOString() + '\')" ' +
+      'ondragover="event.preventDefault();this.classList.add(\'drag-over\')" ' +
+      'ondragleave="this.classList.remove(\'drag-over\')" ' +
+      'ondrop="calDrop(event,\'' + dateStr + '\',this)">' +
+      '<span class="cal-num' + (isToday?' today-num':'') + (isRelDay?' release-num':'') + '">' + cur.getDate() + '</span>' +
+      (isRelDay ? '<span class="cal-release-label">RELEASE</span>' : '') +
+      '<div class="cal-tasks">';
+    dayTasks.slice(0,3).forEach(function(t) {
+      var isOvr = !t.done && t.date < today;
+      var isTW  = !t.done && t.date >= today && t.date <= weekAhead;
+      var cc = CAT_COLORS[t.s.cat] || CAT_COLORS.STRATEGY;
+      var style = t.done ? 'background:rgba(16,185,129,.2);color:#6ee7b7' :
+                  isOvr  ? 'background:rgba(239,68,68,.25);color:#fca5a5' :
+                  isTW   ? 'background:rgba(245,158,11,.22);color:#fcd34d' :
+                  'background:' + cc.hex + '22;color:' + cc.hex;
+      html += '<div class="cal-task' + (t.done?' done':'') + '" style="' + style + '" draggable="true" ' +
+        'ondragstart="_dragIdx=' + (t.s.num-1) + ';setTimeout(function(){this.style.opacity=\'.3\';},0)" ' +
+        'ondragend="this.style.opacity=\'1\'" ' +
+        'onclick="event.stopPropagation();toggleTask(' + (t.s.num-1) + ')" ' +
+        'title="Step ' + t.s.num + ': ' + t.s.title + '">' +
+        'S' + t.s.num + ': ' + t.s.title.slice(0,16) + (t.s.title.length > 16 ? '…' : '') + '</div>';
+    });
+    if (dayTasks.length > 3) html += '<div class="cal-more">+' + (dayTasks.length-3) + ' more</div>';
+    html += '</div></div>';
+    cur.setDate(cur.getDate() + 1);
+  }
+  document.getElementById('calendarGrid').innerHTML = html;
+}
+function calDrop(ev, dateStr, el) {
+  ev.preventDefault(); el.classList.remove('drag-over');
+  if (_dragIdx !== null) { P().taskDateOverrides[_dragIdx] = dateStr; _dragIdx = null; saveApp(); renderAll(); }
+}
+function changeMonth(d) { window._calMonth.setMonth(window._calMonth.getMonth() + d); renderCalendar(); }
+function calSelectDay(iso) {
+  var date = new Date(iso);
+  var today = new Date(); today.setHours(0,0,0,0);
+  var tasks = CAMPAIGN_STEPS.map(function(s){ return {s:s, date:getTaskDate(s.num), done:P().completedTasks.includes(s.num-1)}; }).filter(function(t){ return isSameDay(t.date, date); });
+  if (!tasks.length) { document.getElementById('selectedDayTasks').classList.add('hidden'); return; }
+  document.getElementById('selectedDayTasks').classList.remove('hidden');
+  document.getElementById('selectedDayTitle').textContent = 'Tasks for ' + fmtFull(date);
+  var html = '';
+  tasks.forEach(function(t) {
+    var isOvr = !t.done && t.date < today;
+    var cc = CAT_COLORS[t.s.cat] || CAT_COLORS.STRATEGY;
+    var hasMoved = P().taskDateOverrides[t.s.num-1] !== undefined;
+    html += '<div onclick="toggleTask(' + (t.s.num-1) + ')" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;cursor:pointer;border:1px solid ' + (isOvr?'rgba(239,68,68,.2)':'var(--border)') + ';margin-bottom:6px">' +
+      '<div class="check-box' + (t.done?' checked':'') + '">' +
+      (t.done ? '<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') +
+      '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px">' +
+          '<span class="tag ' + cc.cls + '">' + t.s.cat + '</span>' +
+          (t.s.critical ? '<span class="tag cat-crit">Critical</span>' : '') +
+          (isOvr ? '<span style="font-size:10px;color:#fca5a5">Overdue</span>' : '') +
+        '</div>' +
+        '<span style="font-size:13px;font-weight:600;' + (t.done?'text-decoration:line-through;color:var(--text3)':'') + '">Step ' + t.s.num + ': ' + escHtml(t.s.title) + '</span>' +
+      '</div>' +
+      (hasMoved ? '<button onclick="event.stopPropagation();resetTaskDate(' + (t.s.num-1) + ')" style="font-size:10px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:5px;flex-shrink:0" title="Reset to auto date">↩ Reset</button>' : '') +
+      '</div>';
+  });
+  document.getElementById('selectedDayTasksList').innerHTML = html;
+}
+function resetTaskDate(i) { delete P().taskDateOverrides[i]; saveApp(); renderAll(); }
+
+// ══════════════════════════════════════════════════
+// TIMELINE
+// ══════════════════════════════════════════════════
+window._phaseFilter = 'all';
+function renderTimeline() {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var filter = window._phaseFilter || 'all';
+  var tasks = CAMPAIGN_STEPS.filter(function(s){ return filter === 'all' || s.phase === filter; })
+    .map(function(s){ return {s:s, date:getTaskDate(s.num), done:P().completedTasks.includes(s.num-1)}; })
+    .sort(function(a,b){ return a.date - b.date; });
+  document.getElementById('timelineCompleted').textContent = P().completedTasks.length;
+  document.getElementById('tlTotal').textContent = CAMPAIGN_STEPS.length;
+  var html = '<div class="tl-line"></div>';
+  tasks.forEach(function(t, i) {
+    var isOvr = !t.done && t.date < today;
+    var isCur = isSameDay(t.date, today);
+    var hasMoved = P().taskDateOverrides[t.s.num-1] !== undefined;
+    var wk = STEP_WEEK[t.s.num] || 0;
+    var wkLabel = wk === 0 ? 'LAUNCH' : (wk > 0 ? '+' + wk : wk) + 'wk';
+    var dotCls = 'tl-dot' + (t.done?' done':isCur?' current':isOvr?' overdue':'');
+    var cc = CAT_COLORS[t.s.cat] || CAT_COLORS.STRATEGY;
+    html += '<div class="tl-item" style="animation-delay:' + (i*.035) + 's">' +
+      '<div class="tl-date">' +
+        '<span style="' + (isOvr?'color:#fca5a5':isCur?'color:#fcd34d;font-weight:700':'') + '">' + fmtDate(t.date) + '</span>' +
+        '<span class="tl-week">' + wkLabel + '</span>' +
+        (hasMoved ? '<span class="tl-moved">moved</span>' : '') +
+      '</div>' +
+      '<div class="' + dotCls + '"></div>' +
+      '<div onclick="toggleTask(' + (t.s.num-1) + ')" class="tl-card' + (isOvr?' overdue':'') + (t.done?' done-card':'') + '">' +
+        '<div class="tl-card-meta">' +
+          '<span class="tag ' + cc.cls + '">' + t.s.cat + '</span>' +
+          (t.s.critical ? '<span class="tag cat-crit">Critical</span>' : '') +
+          '<span style="font-size:10px;color:var(--text3)">Step ' + t.s.num + '</span>' +
+          (t.done   ? '<span style="font-size:10px;color:#6ee7b7;margin-left:auto">Done ✓</span>' : '') +
+          (isOvr    ? '<span style="font-size:10px;color:#fca5a5;margin-left:auto">Overdue</span>' : '') +
+          (isCur&&!t.done ? '<span style="font-size:10px;color:#fcd34d;margin-left:auto">Today</span>' : '') +
+        '</div>' +
+        '<div style="font-size:13px;font-weight:600;' + (t.done?'text-decoration:line-through;color:var(--text3)':'') + '">' + escHtml(t.s.title) + '</div>' +
+      '</div>' +
+    '</div>';
+  });
+  document.getElementById('timelineContainer').innerHTML = html;
+}
+function filterPhase(phase, btn) {
+  window._phaseFilter = phase;
+  document.querySelectorAll('#phaseFilters .phase-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderTimeline();
+}
+
+// ══════════════════════════════════════════════════
+// UPCOMING TASKS
+// ══════════════════════════════════════════════════
+function renderUpcoming() {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var tasks = CAMPAIGN_STEPS
+    .map(function(s){ return {s:s, date:getTaskDate(s.num), done:P().completedTasks.includes(s.num-1)}; })
+    .filter(function(t){ return !t.done; })
+    .sort(function(a,b){ return a.date - b.date; })
+    .slice(0, 6);
+  if (!tasks.length) { document.getElementById('upcomingTasks').innerHTML = '<p style="font-size:13px;color:var(--text3)">All tasks completed!</p>'; return; }
+  var html = '';
+  tasks.forEach(function(t) {
+    var isOvr   = t.date < today;
+    var isToday = isSameDay(t.date, today);
+    var cc = CAT_COLORS[t.s.cat] || CAT_COLORS.STRATEGY;
+    html += '<div class="upcoming-item ' + (isOvr?'overdue':isToday?'today':'normal') + '" onclick="toggleTask(' + (t.s.num-1) + ')">' +
+      '<div class="check-box"></div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">' +
+          '<span class="tag ' + cc.cls + '">' + t.s.cat + '</span>' +
+          '<span style="font-size:10px;font-family:var(--mono);color:' + (isOvr?'#fca5a5':isToday?'#fcd34d':'var(--text3)') + '">' + fmtDate(t.date) + '</span>' +
+          (isOvr    ? '<span style="font-size:10px;color:#fca5a5">Overdue</span>' : '') +
+          (isToday  ? '<span style="font-size:10px;color:#fcd34d">Today</span>'   : '') +
+        '</div>' +
+        '<div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Step ' + t.s.num + ': ' + escHtml(t.s.title) + '</div>' +
+      '</div>' +
+    '</div>';
+  });
+  document.getElementById('upcomingTasks').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+// TASK TOGGLE
+// ══════════════════════════════════════════════════
+function toggleTask(i) {
+  var ct = P().completedTasks;
+  if (ct.includes(i)) { P().completedTasks = ct.filter(function(x){ return x !== i; }); }
+  else { ct.push(i); }
+  saveApp(); renderAll();
+}
+
+// ══════════════════════════════════════════════════
+// COMMAND STATS
+// ══════════════════════════════════════════════════
+function renderCommandStats() {
+  var p = P();
+  var taskProg   = p.completedTasks.length / CAMPAIGN_STEPS.length * 100;
+  var splitsSum  = p.splits.reduce(function(s,x){ return s + x.percentage; }, 0);
+  var readiness  = (taskProg + (splitsSum === 100 ? 100 : 0)) / 2;
+  var r = 23, cv = r*2*Math.PI, o = cv - (readiness/100)*cv;
+  document.getElementById('readinessRing').innerHTML =
+    '<circle stroke="var(--border)" fill="none" stroke-width="5" r="' + r + '" cx="29" cy="29" style="transform:rotate(-90deg);transform-origin:center"/>' +
+    '<circle stroke="var(--violet)" fill="none" stroke-width="5" stroke-linecap="round" r="' + r + '" cx="29" cy="29" stroke-dasharray="' + cv + ' ' + cv + '" stroke-dashoffset="' + o + '" style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset .5s"/>' +
+    '<text x="29" y="34" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="800" font-family="DM Mono">' + Math.round(readiness) + '%</text>';
+  document.getElementById('readinessLabel').textContent = readiness >= 80 ? 'Ready' : readiness >= 50 ? 'Progress' : 'Setup';
+  document.getElementById('tasksCompleted').textContent = p.completedTasks.length;
+  document.getElementById('totalTasksCount').textContent = CAMPAIGN_STEPS.length;
+  document.getElementById('tasksProgress').style.width = taskProg + '%';
+  document.getElementById('splitsTotal').textContent = splitsSum + '%';
+  document.getElementById('splitsTotal').style.color = splitsSum === 100 ? 'var(--emerald)' : 'var(--rose)';
+  document.getElementById('splitsStatus').textContent = splitsSum === 100 ? 'Balanced' : splitsSum + '% — fix splits';
+  document.getElementById('splitsStatus').style.color = splitsSum === 100 ? 'var(--text3)' : 'var(--rose)';
+  var today = new Date(); today.setHours(0,0,0,0);
+  var oc = CAMPAIGN_STEPS.filter(function(s,i){ return !p.completedTasks.includes(i) && getTaskDate(s.num) < today; }).length;
+  document.getElementById('overdueAlert').style.display = oc ? 'flex' : 'none';
+  if (oc) document.getElementById('overdueCount').textContent = oc;
+  var spent = p.budget.items.reduce(function(s,i){ return s + i.spent; }, 0);
+  document.getElementById('budgetSpent').textContent = spent;
+  document.getElementById('budgetTotalHeader').textContent = p.budget.total;
+}
+
+// ══════════════════════════════════════════════════
+// HEADER
+// ══════════════════════════════════════════════════
+function renderHeader() {
+  var p = P();
+  document.getElementById('projectName').value = p.name;
+  document.getElementById('releaseDate').value = p.releaseDate;
+  var d = daysUntil(), cd = document.getElementById('countdown');
+  cd.textContent = d === 0 ? 'LAUNCH DAY' : Math.abs(d) + 'd ' + (d > 0 ? 'to launch' : 'post-launch');
+  cd.style.background = d <= 0 ? 'rgba(190,24,93,.12)' : d <= 7 ? 'rgba(245,158,11,.12)' : 'rgba(109,40,217,.12)';
+  cd.style.color      = d <= 0 ? '#f9a8d4'             : d <= 7 ? '#fcd34d'               : 'var(--violet2)';
+}
+
+// ══════════════════════════════════════════════════
+// SPOTIFY
+// ══════════════════════════════════════════════════
+function connectSpotify() {
+  var match = document.getElementById('spotifyLinkInput').value.match(/artist\/([a-zA-Z0-9]+)/);
+  if (match) {
+    P().spotify.artistId = match[1]; P().spotify.connected = true; saveApp();
+    document.getElementById('spotifyEmbed').classList.remove('hidden');
+    document.getElementById('embedContainer').innerHTML = '<iframe style="border-radius:10px" src="https://open.spotify.com/embed/artist/' + match[1] + '?utm_source=generator&theme=0" width="100%" height="252" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+  }
+}
+function saveSpotifyStats() {
+  var sp = P().spotify;
+  sp.monthlyListeners  = +document.getElementById('inputMonthlyListeners').value || 0;
+  sp.followers         = +document.getElementById('inputFollowers').value         || 0;
+  sp.streams28         = +document.getElementById('inputStreams28').value          || 0;
+  sp.streams7          = +document.getElementById('inputStreams7').value           || 0;
+  sp.saves             = +document.getElementById('inputSaves').value              || 0;
+  sp.playlistReach     = +document.getElementById('inputPlaylistReach').value      || 0;
+  sp.syncDate = document.getElementById('spotifySyncDate').value || new Date().toISOString().split('T')[0];
+  sp.locked = true;
+  saveApp(); renderSpotifyDisplay(); renderSpotifyWidget();
+}
+var _spotifyEditing = false;
+function toggleSpotifyEdit() {
+  _spotifyEditing = !_spotifyEditing;
+  document.getElementById('spotifyEditBtn').textContent = _spotifyEditing ? 'Save' : 'Edit';
+  if (_spotifyEditing) {
+    document.getElementById('spotifyForm').classList.remove('hidden');
+    document.getElementById('spotifyDisplay').classList.add('hidden');
+  } else { saveSpotifyStats(); }
+}
+function renderSpotifyDisplay() {
+  var sp = P().spotify;
+  if (!sp.locked || !sp.monthlyListeners) return;
+  document.getElementById('spotifyForm').classList.add('hidden');
+  document.getElementById('spotifyDisplay').classList.remove('hidden');
+  document.getElementById('spotifyEditBtn').classList.remove('hidden');
+  var eng      = sp.followers && sp.monthlyListeners ? (sp.followers/sp.monthlyListeners*100).toFixed(1) : 0;
+  var saveRate = sp.streams28 && sp.saves ? (sp.saves/sp.streams28*100).toFixed(1) : 0;
+  var rev      = (sp.streams28 * .004).toFixed(2);
+  var metrics = [
+    {l:'Monthly Listeners',v:fmt(sp.monthlyListeners), c:'#1DB954'},
+    {l:'Followers',         v:fmt(sp.followers),        c:'#a78bfa'},
+    {l:'Streams / 28d',     v:fmt(sp.streams28),        c:'#60a5fa'},
+    {l:'Streams / 7d',      v:fmt(sp.streams7),         c:'#fcd34d'},
+    {l:'Engagement',        v:eng+'%',                  c:'#f472b6'},
+    {l:'Save Rate',         v:saveRate+'%',             c:'#34d399'},
+    {l:'Playlist Reach',    v:fmt(sp.playlistReach),    c:'#fb923c'},
+    {l:'Est. Revenue/mo',   v:'$'+rev,                  c:'#1DB954'}
+  ];
+  document.getElementById('spotifyStatsDisplay').innerHTML = metrics.map(function(m){
+    return '<div class="spotify-card spotify-stat"><div class="spotify-stat-label">' + m.l + '</div><div class="spotify-stat-val" style="color:' + m.c + '">' + m.v + '</div></div>';
+  }).join('');
+  document.getElementById('spotifySyncDateDisplay').textContent = 'Last sync: ' + (sp.syncDate || '—');
+}
+function renderSpotifyWidget() {
+  var sp = P().spotify;
+  var el = document.getElementById('spotifyWidget');
+  if (sp.monthlyListeners > 0 || sp.connected) {
+    el.innerHTML = '<div class="spotify-card" style="padding:13px 16px;display:flex;align-items:center;gap:14px;cursor:pointer" onclick="switchTab(\'spotify\')">' +
+      '<svg width="26" height="26" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>' +
+      '<div><div style="font-weight:700;color:#1DB954;font-size:13px">Spotify Connected</div><div style="font-size:11px;color:var(--text3)">' + fmt(sp.monthlyListeners) + ' listeners/mo</div></div>' +
+      '<div style="display:flex;gap:18px;margin-left:auto;text-align:center">' +
+        '<div><div style="font-weight:700;font-family:var(--mono)">' + fmt(sp.followers) + '</div><div style="font-size:10px;color:var(--text3)">followers</div></div>' +
+        '<div><div style="font-weight:700;font-family:var(--mono)">' + fmt(sp.streams28) + '</div><div style="font-size:10px;color:var(--text3)">streams/28d</div></div>' +
+        '<div><div style="font-weight:700;font-family:var(--mono);color:#1DB954">$' + (sp.streams28*.004).toFixed(0) + '</div><div style="font-size:10px;color:var(--text3)">est.rev</div></div>' +
+      '</div><span style="color:var(--text3);font-size:16px;margin-left:8px">→</span></div>';
+  } else {
+    el.innerHTML = '<div class="spotify-card" style="padding:13px 16px;cursor:pointer;display:flex;align-items:center;gap:10px" onclick="switchTab(\'spotify\')">' +
+      '<div style="width:38px;height:38px;border-radius:9px;background:rgba(29,185,84,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>' +
+      '</div>' +
+      '<div><div style="font-weight:600;font-size:13px">Connect Spotify Analytics</div><div style="font-size:11px;color:var(--text3)">Enter your metrics from Spotify for Artists</div></div>' +
+      '<span style="margin-left:auto;color:var(--text3);font-size:16px">→</span></div>';
+  }
+}
+
+// ══════════════════════════════════════════════════
+// SPLITS
+// ══════════════════════════════════════════════════
+function renderSplits() {
+  var total = P().splits.reduce(function(s,x){ return s + x.percentage; }, 0);
+  var badge = document.getElementById('splitsTotalBadge');
+  badge.textContent = total + '%';
+  badge.style.background = total===100 ? 'rgba(16,185,129,.15)' : 'rgba(239,68,68,.12)';
+  badge.style.color  = total===100 ? '#6ee7b7' : '#fca5a5';
+  badge.style.border = '1px solid ' + (total===100 ? 'rgba(16,185,129,.25)' : 'rgba(239,68,68,.25)');
+  var barH = '', legH = '';
+  P().splits.forEach(function(s,i){
+    var c = SPLIT_PALETTE[i % SPLIT_PALETTE.length], pct = Math.max(0, s.percentage);
+    barH += '<div class="split-bar-seg" style="width:' + pct + '%;background:' + c + '" title="' + s.name + ': ' + s.percentage + '%"></div>';
+    legH += '<div style="display:flex;align-items:center;gap:5px"><div style="width:9px;height:9px;border-radius:3px;background:' + c + '"></div><span style="font-size:11px;color:var(--text3)">' + escHtml(s.name) + ' <strong style="font-family:var(--mono)">' + s.percentage + '%</strong></span></div>';
+  });
+  if (total < 100) barH += '<div class="split-bar-seg" style="width:' + (100-total) + '%;background:var(--border)"></div>';
+  document.getElementById('splitBar').innerHTML = barH;
+  document.getElementById('splitLegend').innerHTML = legH;
+  var html = '';
+  P().splits.forEach(function(s,i){
+    var c = SPLIT_PALETTE[i % SPLIT_PALETTE.length];
+    html += '<div class="split-item">' +
+      '<div class="split-color-bar" style="background:' + c + '"></div>' +
+      '<div class="split-inputs">' +
+        '<input class="split-input-name" type="text" value="' + escHtml(s.name) + '" onchange="updateSplit(' + i + ',\'name\',this.value)">' +
+        '<input class="split-input-role" type="text" value="' + escHtml(s.role) + '" onchange="updateSplit(' + i + ',\'role\',this.value)">' +
+      '</div>' +
+      '<select class="select-sm" onchange="updateSplit(' + i + ',\'type\',this.value)">' +
+        '<option value="both"' + (s.type==='both'?' selected':'') + '>Master+Pub</option>' +
+        '<option value="master"' + (s.type==='master'?' selected':'') + '>Master only</option>' +
+        '<option value="publishing"' + (s.type==='publishing'?' selected':'') + '>Publishing only</option>' +
+      '</select>' +
+      '<div style="display:flex;align-items:center;gap:4px">' +
+        '<input class="split-pct" type="number" min="0" max="100" value="' + s.percentage + '" onchange="updateSplit(' + i + ',\'percentage\',+this.value)">' +
+        '<span style="color:var(--text3);font-size:13px">%</span>' +
+      '</div>' +
+      (P().splits.length > 1 ? '<button onclick="removeSplit(' + i + ')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:5px;flex-shrink:0" onmouseover="this.style.color=\'#fca5a5\'" onmouseout="this.style.color=\'var(--text3)\'">✕</button>' : '') +
+    '</div>';
+  });
+  document.getElementById('splitsList').innerHTML = html;
+  document.getElementById('splitsTotal').textContent = total + '%';
+  document.getElementById('splitsTotal').style.color = total===100 ? 'var(--emerald)' : 'var(--rose)';
+  document.getElementById('splitsStatus').textContent = total===100 ? 'Balanced' : total + '% — fix splits';
+  document.getElementById('splitsStatus').style.color = total===100 ? 'var(--text3)' : 'var(--rose)';
+}
+function addSplit(type) { P().splits.push({id:Date.now(),name:'New Participant',role:type==='master'?'Master Rights':type==='publishing'?'Publishing':'',type:type||'both',percentage:0}); saveApp(); renderSplits(); }
+function updateSplit(i,f,v) { P().splits[i][f]=v; saveApp(); renderSplits(); }
+function removeSplit(i) { P().splits.splice(i,1); saveApp(); renderSplits(); }
+function saveCodes() {
+  P().codes.isrc = document.getElementById('isrcCode').value;
+  P().codes.upc  = document.getElementById('upcCode').value;
+  P().codes.pro  = document.getElementById('proSelect').value;
+  P().codes.proWorkId = document.getElementById('proWorkId').value;
+  saveApp(); alert('Codes saved.');
+}
+
+// ══════════════════════════════════════════════════
+// BUDGET
+// ══════════════════════════════════════════════════
+function renderBudget() {
+  var b = P().budget;
+  var spent = b.items.reduce(function(s,i){ return s + i.spent; }, 0);
+  var allocated = b.items.reduce(function(s,i){ return s + i.allocated; }, 0);
+  var avail = b.total - spent;
+  var pct = b.total > 0 ? Math.min(100, spent/b.total*100) : 0;
+  document.getElementById('budgetTotalInput').value = b.total;
+  document.getElementById('budgetAllocatedDisplay').textContent = allocated;
+  document.getElementById('budgetSpentDisplay').textContent = '$' + spent;
+  document.getElementById('budgetAvailable').textContent = '$' + avail;
+  document.getElementById('budgetPct').textContent = pct.toFixed(0) + '%';
+  document.getElementById('budgetProgress').style.width = pct + '%';
+  document.getElementById('budgetSpent').textContent = spent;
+  document.getElementById('budgetTotalHeader').textContent = b.total;
+  var html = '';
+  b.items.forEach(function(item,i){
+    var ip = item.allocated > 0 ? Math.min(100, item.spent/item.allocated*100) : 0;
+    html += '<div class="budget-item">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">' +
+        '<input type="text" value="' + escHtml(item.category) + '" onchange="updateBudget(' + i + ',\'category\',this.value)" style="background:transparent;border:none;padding:0;font-weight:600;font-size:13px;flex:1">' +
+        (b.items.length > 1 ? '<button onclick="removeBudgetItem(' + i + ')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px" onmouseover="this.style.color=\'#fca5a5\'" onmouseout="this.style.color=\'var(--text3)\'">✕</button>' : '') +
+      '</div>' +
+      '<div style="display:flex;gap:13px;align-items:center">' +
+        '<div><div style="font-size:10px;color:var(--text3);margin-bottom:4px">Allocated</div><div style="display:flex;align-items:center;gap:3px"><span style="color:var(--text3);font-size:12px">$</span><input class="budget-num" type="number" min="0" value="' + item.allocated + '" onchange="updateBudget(' + i + ',\'allocated\',+this.value)"></div></div>' +
+        '<div><div style="font-size:10px;color:var(--text3);margin-bottom:4px">Spent</div><div style="display:flex;align-items:center;gap:3px"><span style="color:var(--text3);font-size:12px">$</span><input class="budget-num" type="number" min="0" value="' + item.spent + '" onchange="updateBudget(' + i + ',\'spent\',+this.value)" style="color:var(--text3)"></div></div>' +
+        '<div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px"><span>Execution</span><span style="font-family:var(--mono)">' + ip.toFixed(0) + '%</span></div><div class="progress-bar"><div class="progress-fill" style="width:' + ip + '%"></div></div></div>' +
+      '</div>' +
+    '</div>';
+  });
+  document.getElementById('budgetList').innerHTML = html;
+}
+function updateBudgetTotal(v) { P().budget.total = v||0; saveApp(); renderBudget(); renderCommandStats(); }
+function addBudgetItem()  { P().budget.items.push({id:Date.now(),category:'New category',allocated:0,spent:0}); saveApp(); renderBudget(); }
+function removeBudgetItem(i) { P().budget.items.splice(i,1); saveApp(); renderBudget(); renderCommandStats(); }
+function updateBudget(i,f,v) { P().budget.items[i][f]=v; saveApp(); renderBudget(); renderCommandStats(); }
+
+// ══════════════════════════════════════════════════
+// PR PIPELINE
+// ══════════════════════════════════════════════════
+function renderOutreach() {
+  var st = {pitched:0, accepted:0, rejected:0};
+  var html = '';
+  P().playlists.forEach(function(p,i){
+    if (st[p.status] !== undefined) st[p.status]++;
+    html += '<tr>' +
+      '<td><input type="text" value="' + escHtml(p.name) + '" onchange="updatePlaylist(' + i + ',\'name\',this.value)"></td>' +
+      '<td style="text-align:center"><input type="text" value="' + escHtml(p.reach) + '" onchange="updatePlaylist(' + i + ',\'reach\',this.value)" style="text-align:center;font-family:var(--mono);color:var(--violet2)"></td>' +
+      '<td style="text-align:center"><input type="date" value="' + (p.pitchDate||'') + '" onchange="updatePlaylist(' + i + ',\'pitchDate\',this.value)" style="width:118px;font-size:11px;padding:4px 7px"></td>' +
+      '<td style="text-align:center"><select class="select-sm" onchange="updatePlaylist(' + i + ',\'status\',this.value)">' +
+        '<option value="not-started"' + (p.status==='not-started'?' selected':'') + '>Not contacted</option>' +
+        '<option value="pitched"'     + (p.status==='pitched'    ?' selected':'') + '>Pitched</option>' +
+        '<option value="accepted"'    + (p.status==='accepted'   ?' selected':'') + '>Accepted</option>' +
+        '<option value="rejected"'    + (p.status==='rejected'   ?' selected':'') + '>Rejected</option>' +
+      '</select></td>' +
+      '<td style="text-align:center"><button onclick="removePlaylist(' + i + ')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px" onmouseover="this.style.color=\'#fca5a5\'" onmouseout="this.style.color=\'var(--text3)\'">✕</button></td>' +
+    '</tr>';
+  });
+  document.getElementById('playlistTable').innerHTML = html;
+  document.getElementById('prTotal').textContent    = P().playlists.length;
+  document.getElementById('prPitched').textContent  = st.pitched;
+  document.getElementById('prAccepted').textContent = st.accepted;
+  document.getElementById('prRejected').textContent = st.rejected;
+}
+function addPlaylist()        { P().playlists.push({id:Date.now(),name:'New curator',reach:'0',pitchDate:'',status:'not-started'}); saveApp(); renderOutreach(); }
+function removePlaylist(i)    { P().playlists.splice(i,1); saveApp(); renderOutreach(); }
+function updatePlaylist(i,f,v){ P().playlists[i][f]=v; saveApp(); renderOutreach(); }
+
+// ══════════════════════════════════════════════════
+// AI ASSISTANT
+// ══════════════════════════════════════════════════
+function renderApiKeyConnected() {
+  document.getElementById('aiKeyPanel').innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px">' +
+      '<div style="width:30px;height:30px;border-radius:9px;background:rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">✓</div>' +
+      '<div><div style="font-weight:700;font-size:13px;color:var(--emerald)">API Key connected</div><div style="font-size:11px;color:var(--text3)">Claude AI ready</div></div>' +
+      '<button onclick="resetApiKey()" style="margin-left:auto;background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;font-family:var(--font)">Change</button>' +
+    '</div>';
+}
+function saveApiKey() { app.globalAI.apiKey = document.getElementById('apiKeyInput').value.trim(); saveApp(); if (app.globalAI.apiKey) renderApiKeyConnected(); }
+function resetApiKey(){ app.globalAI.apiKey = ''; saveApp(); loadProjectIntoUI(); }
+
+var QP = {
+  content:  'Based on the release "{name}" in genre {genre} with a {mood} vibe targeting {audience}, give 10 specific content ideas for the 30 days before launch. Include format, platform ({platforms}), and timing.',
+  hooks:    'Create 8 creative TikTok/Reels hooks for "{name}" ({genre}, {mood}). Grab attention in 3 seconds. Audience: {audience}.',
+  bio:      'Write 3 artist bio versions (150, 300, 500 chars) for a {genre} artist releasing "{name}" with a {mood} sound.',
+  pitch:    'Write a professional playlist curator pitch email for "{name}" ({genre}). Include subject line, body, and CTA. Artist has {listeners} monthly listeners.',
+  caption:  'Write 6 Instagram/TikTok captions for the launch of "{name}" ({genre}). One for launch day, three for the week, two post-release. Include hashtags.',
+  ads:      'Ad copy for Facebook/Instagram/TikTok for "{name}" ({genre}): headline (6 words), description (30 words), CTA. For 3 different audiences.',
+  research: 'Market analysis for a {genre} artist with {mood} vibe targeting {audience}. Include target Spotify playlists, curators, similar artists, and organic growth strategies.',
+  strategy: 'Complete 8-week launch strategy for "{name}" ({genre}). Week by week breakdown, budget per channel, KPIs, post-launch momentum plan. Platforms: {platforms}.'
+};
+function quickPrompt(type) {
+  var p = P(), ai = p.ai;
+  var msg = QP[type]
+    .replace('{name}',     p.name)
+    .replace(/{genre}/g,   ai.genre     || 'Indie')
+    .replace(/{mood}/g,    ai.mood      || 'melodic and nostalgic')
+    .replace(/{audience}/g,ai.audience  || '18-28')
+    .replace(/{platforms}/g,ai.platforms|| 'Instagram, TikTok, Spotify')
+    .replace('{listeners}', fmt(p.spotify.monthlyListeners));
+  document.getElementById('chatInput').value = msg;
+  sendChat();
+}
+async function sendChat() {
+  var input = document.getElementById('chatInput');
+  var msg = input.value.trim(); if (!msg) return;
+  input.value = '';
+  var ai = P().ai;
+  ai.genre     = document.getElementById('aiGenre').value;
+  ai.mood      = document.getElementById('aiMood').value;
+  ai.audience  = document.getElementById('aiAudience').value;
+  ai.platforms = document.getElementById('aiPlatforms').value;
+  saveApp(); addChat('user', msg);
+  if (!app.globalAI.apiKey) { addChat('assistant', 'Connect your Anthropic API key above to use the assistant.'); return; }
+  var lid = 'l' + Date.now(); addChat('assistant', 'Generating ideas…', lid, true);
+  var sys = 'You are an expert in music marketing, A&R, and release strategy for independent artists.\nRelease: "' + P().name + '" | Genre: ' + (ai.genre||'N/A') + ' | Mood: ' + (ai.mood||'N/A') + '\nAudience: ' + (ai.audience||'N/A') + ' | Platforms: ' + (ai.platforms||'N/A') + '\nMonthly Listeners: ' + fmt(P().spotify.monthlyListeners) + ' | Release Date: ' + P().releaseDate + '\nRespond in English. Be practical, specific, and actionable. No generic advice.';
+  var msgs = ((P().ai.chatHistory) || []).concat([{role:'user', content:msg}]);
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':app.globalAI.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,system:sys,messages:msgs.slice(-10)})
+    });
+    var data = await res.json();
+    var reply = (data.content && data.content[0] && data.content[0].text) || 'Error getting response.';
+    document.getElementById(lid) && document.getElementById(lid).remove();
+    addChat('assistant', reply);
+    P().ai.chatHistory = msgs.concat([{role:'assistant',content:reply}]).slice(-20);
+    saveApp();
+  } catch(e) {
+    document.getElementById(lid) && document.getElementById(lid).remove();
+    addChat('assistant', 'Error: ' + e.message);
+  }
+}
+function addChat(role, text, id, loading) {
+  var c = document.getElementById('chatMessages');
+  var d = document.createElement('div');
+  d.className = 'chat-msg ' + role + ' fade-up' + (loading?' loading':'');
+  if (id) d.id = id;
+  d.innerHTML = '<div class="chat-msg-label">' + (role==='user'?'You':'Assistant') + '</div><div class="chat-body">' + escHtml(text) + '</div>';
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+
+// ══════════════════════════════════════════════════
+// SOCIAL AUDIT
+// ══════════════════════════════════════════════════
+function getSPD() { return P().social[P().social.platform]; }
+function setSocialPlatform(platform, silent) {
+  if (!P().social) return;
+  P().social.platform = platform;
+  if (!silent) saveApp();
+  document.getElementById('btn-tiktok').classList.toggle('active', platform==='tiktok');
+  document.getElementById('btn-instagram').classList.toggle('active', platform==='instagram');
+  document.getElementById('tiktokFields').style.display    = platform==='tiktok'    ? '' : 'none';
+  document.getElementById('instagramFields').style.display = platform==='instagram' ? '' : 'none';
+  var pd = P().social[platform];
+  document.getElementById('socialHandle').value = pd.handle || '';
+  document.getElementById('socialUrl').value    = pd.url    || '';
+  if (!document.getElementById('auditDate').value) document.getElementById('auditDate').value = new Date().toISOString().split('T')[0];
+  renderSocialAudit();
+}
+function saveSocialProfile() { var pd=getSPD(); pd.handle=document.getElementById('socialHandle').value.trim(); pd.url=document.getElementById('socialUrl').value.trim(); saveApp(); }
+function saveAuditSnapshot() {
+  var platform = P().social.platform;
+  var date = document.getElementById('auditDate').value || new Date().toISOString().split('T')[0];
+  var entry = {date:date, ts:Date.now()};
+  if (platform === 'tiktok') {
+    entry.followers   = +document.getElementById('tt_followers').value   || 0;
+    entry.following   = +document.getElementById('tt_following').value   || 0;
+    entry.totalLikes  = +document.getElementById('tt_totalLikes').value  || 0;
+    entry.avgViews    = +document.getElementById('tt_avgViews').value    || 0;
+    entry.avgLikes    = +document.getElementById('tt_avgLikes').value    || 0;
+    entry.avgComments = +document.getElementById('tt_avgComments').value || 0;
+    entry.avgShares   = +document.getElementById('tt_avgShares').value   || 0;
+    entry.notes       = document.getElementById('tt_notes').value.trim();
+    entry.engRate     = entry.avgViews > 0 ? +((entry.avgLikes+entry.avgComments+entry.avgShares)/entry.avgViews*100).toFixed(2) : 0;
+  } else {
+    entry.followers   = +document.getElementById('ig_followers').value   || 0;
+    entry.following   = +document.getElementById('ig_following').value   || 0;
+    entry.posts       = +document.getElementById('ig_posts').value       || 0;
+    entry.avgLikes    = +document.getElementById('ig_avgLikes').value    || 0;
+    entry.avgComments = +document.getElementById('ig_avgComments').value || 0;
+    entry.avgReach    = +document.getElementById('ig_avgReach').value    || 0;
+    entry.avgSaves    = +document.getElementById('ig_avgSaves').value    || 0;
+    entry.notes       = document.getElementById('ig_notes').value.trim();
+    entry.engRate     = entry.followers > 0 ? +((entry.avgLikes+entry.avgComments+entry.avgSaves)/entry.followers*100).toFixed(2) : 0;
+  }
+  if (!entry.followers) { alert('Please enter at least the number of followers.'); return; }
+  var pd = getSPD();
+  pd.audits.push(entry);
+  pd.audits.sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
+  saveApp();
+  ['tt_followers','tt_following','tt_totalLikes','tt_avgViews','tt_avgLikes','tt_avgComments','tt_avgShares','tt_notes',
+   'ig_followers','ig_following','ig_posts','ig_avgLikes','ig_avgComments','ig_avgReach','ig_avgSaves','ig_notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  renderSocialAudit();
+}
+function deleteAudit(idx) {
+  if (!confirm('Delete this audit?')) return;
+  getSPD().audits.splice(idx,1); saveApp(); renderSocialAudit();
+}
+function engColor(eng, platform) {
+  var hi = platform==='instagram' ? 4 : 5, mid = platform==='instagram' ? 1.5 : 2;
+  return eng >= hi ? '#6ee7b7' : eng >= mid ? '#fcd34d' : '#fca5a5';
+}
+function engTier(eng, platform) {
+  if (platform === 'tiktok') {
+    if (eng>=8)   return {label:'Viral',    color:'#fcd34d', desc:'Exceptional engagement. Your content is resonating hard. Time to scale with ads.'};
+    if (eng>=4)   return {label:'Solid',    color:'#6ee7b7', desc:'Good engagement. The algorithm favors you. Stay consistent.'};
+    if (eng>=1.5) return {label:'Growing',  color:'#93c5fd', desc:'Average engagement. Experiment with formats and posting times.'};
+    return         {label:'Low',           color:'#fca5a5', desc:'Needs attention. Analyze which content generated the most interaction.'};
+  } else {
+    if (eng>=5)   return {label:'Exceptional', color:'#fcd34d', desc:'Very high engagement. Your audience is highly committed.'};
+    if (eng>=2.5) return {label:'Good',         color:'#6ee7b7', desc:'Above average. Keep doing what works.'};
+    if (eng>=1)   return {label:'Average',      color:'#93c5fd', desc:'Within normal range. Try posting more Reels.'};
+    return         {label:'Low',               color:'#fca5a5', desc:'Below average. Consider posting more consistently.'};
+  }
+}
+function renderSocialAudit() {
+  var platform = P().social ? P().social.platform : 'tiktok';
+  var pd = getSPD();
+  if (!pd) return;
+  var audits = pd.audits || [];
+  var latest = audits.length ? audits[audits.length-1] : null;
+  var statsWrap   = document.getElementById('socialCurrentStats');
+  var healthPanel = document.getElementById('socialHealthPanel');
+  var statsGrid   = document.getElementById('socialStatsGrid');
+  if (latest) {
+    statsWrap.classList.remove('hidden');
+    healthPanel.style.display = 'grid';
+    var prev = audits.length > 1 ? audits[audits.length-2] : null;
+    var fDelta = prev ? latest.followers - prev.followers : null;
+    var eDelta = prev ? +(latest.engRate - prev.engRate).toFixed(2) : null;
+    function deltaHTML(val, suffix) {
+      suffix = suffix || '';
+      return val === null ? '' : '<div style="font-size:11px;color:' + (val>=0?'#6ee7b7':'#fca5a5') + ';margin-top:3px">' + (val>=0?'↑':'↓') + ' ' + Math.abs(val).toLocaleString() + suffix + ' vs prev</div>';
+    }
+    if (platform === 'tiktok') {
+      statsGrid.innerHTML =
+        '<div class="audit-stat tiktok-grad"><div class="audit-stat-label">Followers</div><div class="audit-stat-val">' + fmtN(latest.followers) + '</div>' + deltaHTML(fDelta) + '</div>' +
+        '<div class="audit-stat tiktok-grad"><div class="audit-stat-label">Avg Views</div><div class="audit-stat-val">' + fmtN(latest.avgViews) + '</div><div class="audit-stat-sub">per video</div></div>' +
+        '<div class="audit-stat tiktok-grad"><div class="audit-stat-label">Avg Likes</div><div class="audit-stat-val">' + fmtN(latest.avgLikes) + '</div></div>' +
+        '<div class="audit-stat tiktok-grad"><div class="audit-stat-label">Engagement</div><div class="audit-stat-val" style="color:' + engColor(latest.engRate) + '">' + latest.engRate + '%</div>' + deltaHTML(eDelta,'%') + '</div>' +
+        '<div class="audit-stat tiktok-grad"><div class="audit-stat-label">Avg Comments</div><div class="audit-stat-val">' + fmtN(latest.avgComments) + '</div></div>' +
+        '<div class="audit-stat tiktok-grad"><div class="audit-stat-label">Avg Shares</div><div class="audit-stat-val">' + fmtN(latest.avgShares) + '</div></div>' +
+        '<div class="audit-stat tiktok-grad"><div class="audit-stat-label">Total Likes</div><div class="audit-stat-val">' + fmtN(latest.totalLikes) + '</div></div>' +
+        '<div class="audit-stat tiktok-grad"><div class="audit-stat-label">Captured</div><div class="audit-stat-val" style="font-size:13px">' + latest.date + '</div><div class="audit-stat-sub">' + audits.length + ' audit' + (audits.length!==1?'s':'') + '</div></div>';
+    } else {
+      statsGrid.innerHTML =
+        '<div class="audit-stat ig-grad"><div class="audit-stat-label">Followers</div><div class="audit-stat-val">' + fmtN(latest.followers) + '</div>' + deltaHTML(fDelta) + '</div>' +
+        '<div class="audit-stat ig-grad"><div class="audit-stat-label">Avg Likes</div><div class="audit-stat-val">' + fmtN(latest.avgLikes) + '</div><div class="audit-stat-sub">per post</div></div>' +
+        '<div class="audit-stat ig-grad"><div class="audit-stat-label">Avg Reach</div><div class="audit-stat-val">' + fmtN(latest.avgReach) + '</div></div>' +
+        '<div class="audit-stat ig-grad"><div class="audit-stat-label">Engagement</div><div class="audit-stat-val" style="color:' + engColor(latest.engRate) + '">' + latest.engRate + '%</div>' + deltaHTML(eDelta,'%') + '</div>' +
+        '<div class="audit-stat ig-grad"><div class="audit-stat-label">Avg Comments</div><div class="audit-stat-val">' + fmtN(latest.avgComments) + '</div></div>' +
+        '<div class="audit-stat ig-grad"><div class="audit-stat-label">Avg Saves</div><div class="audit-stat-val">' + fmtN(latest.avgSaves) + '</div></div>' +
+        '<div class="audit-stat ig-grad"><div class="audit-stat-label">Total Posts</div><div class="audit-stat-val">' + fmtN(latest.posts) + '</div></div>' +
+        '<div class="audit-stat ig-grad"><div class="audit-stat-label">Captured</div><div class="audit-stat-val" style="font-size:13px">' + latest.date + '</div><div class="audit-stat-sub">' + audits.length + ' audit' + (audits.length!==1?'s':'') + '</div></div>';
+    }
+    var eng = latest.engRate, maxEng = platform==='tiktok' ? 15 : 8;
+    var pct = Math.min(100, eng/maxEng*100), circ = 188.5, offset = circ-(pct/100)*circ;
+    var arc = document.getElementById('engScoreArc');
+    arc.style.strokeDashoffset = offset; arc.style.stroke = engColor(eng, platform);
+    document.getElementById('engScoreText').textContent = eng + '%';
+    document.getElementById('engScoreText').style.fill = engColor(eng, platform);
+    var tier = engTier(eng, platform);
+    document.getElementById('engScoreLabel').textContent = tier.label;
+    document.getElementById('engScoreLabel').style.color = tier.color;
+    document.getElementById('engScoreDesc').textContent  = tier.desc;
+    var bmarks = platform==='tiktok' ? [
+      {tier:'Micro (<10K)',  eng:'5–15%', followers:'<10,000'},
+      {tier:'Mid (10K–100K)',eng:'3–8%',  followers:'10–100K'},
+      {tier:'Macro (100K+)', eng:'1–5%',  followers:'100K+'}
+    ] : [
+      {tier:'Micro (<10K)',  eng:'4–8%',  followers:'<10,000'},
+      {tier:'Mid (10K–100K)',eng:'2–5%',  followers:'10–100K'},
+      {tier:'Macro (100K+)', eng:'1–3%',  followers:'100K+'}
+    ];
+    var yourTier = latest.followers < 10000 ? 0 : latest.followers < 100000 ? 1 : 2;
+    document.getElementById('benchmarkList').innerHTML = bmarks.map(function(b,i){
+      return '<div class="benchmark-row"><div><div style="font-size:12px;font-weight:' + (i===yourTier?'700':'500') + ';color:' + (i===yourTier?'var(--text)':'var(--text3)') + '">' + b.tier + (i===yourTier?' ← you':'') + '</div><div style="font-size:10px;color:var(--text3)">' + b.followers + '</div></div><div style="text-align:right"><div style="font-size:12px;font-family:var(--mono);color:' + (i===yourTier?engColor(eng,platform):'var(--text3)') + '">Eng: ' + b.eng + '</div>' + (i===yourTier ? '<div style="font-size:10px;color:' + engColor(eng,platform) + '">Yours: ' + eng + '%</div>' : '') + '</div></div>';
+    }).join('');
+  } else {
+    statsWrap.classList.add('hidden');
+    healthPanel.style.display = 'none';
+  }
+  var histEmpty  = document.getElementById('socialHistoryEmpty');
+  var histTable  = document.getElementById('socialHistoryTable');
+  document.getElementById('socialAuditCount').textContent = audits.length + ' entr' + (audits.length!==1?'ies':'y');
+  if (!audits.length) { histEmpty.style.display=''; histTable.classList.add('hidden'); document.getElementById('socialChartCard').classList.add('hidden'); return; }
+  histEmpty.style.display = 'none'; histTable.classList.remove('hidden');
+  var cols = platform==='tiktok' ? ['Date','Followers','Avg Views','Avg Likes','Engagement','Notes',''] : ['Date','Followers','Avg Likes','Avg Reach','Engagement','Notes',''];
+  var tHTML = '<table class="audit-history-table"><thead><tr>' + cols.map(function(c){ return '<th>'+c+'</th>'; }).join('') + '</tr></thead><tbody>';
+  var rev = audits.slice().reverse();
+  rev.forEach(function(a, ri) {
+    var realIdx = audits.length-1-ri;
+    var engCls = a.engRate >= (platform==='tiktok'?5:4) ? 'eng-great' : a.engRate >= (platform==='tiktok'?2:1.5) ? 'eng-good' : 'eng-low';
+    var row = platform==='tiktok'
+      ? '<td style="font-family:var(--mono);font-size:11px;color:var(--text3)">' + a.date + '</td><td style="font-weight:700">' + fmtN(a.followers) + '</td><td>' + fmtN(a.avgViews) + '</td><td>' + fmtN(a.avgLikes) + '</td>'
+      : '<td style="font-family:var(--mono);font-size:11px;color:var(--text3)">' + a.date + '</td><td style="font-weight:700">' + fmtN(a.followers) + '</td><td>' + fmtN(a.avgLikes) + '</td><td>' + fmtN(a.avgReach) + '</td>';
+    tHTML += '<tr>' + row + '<td><span class="eng-chip ' + engCls + '">' + a.engRate + '%</span></td><td style="color:var(--text3);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(a.notes||'—') + '</td><td><button onclick="deleteAudit(' + realIdx + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px" onmouseover="this.style.color=\'#fca5a5\'" onmouseout="this.style.color=\'var(--text3)\'">✕</button></td></tr>';
+  });
+  tHTML += '</tbody></table>';
+  histTable.innerHTML = tHTML;
+  if (audits.length >= 2) { document.getElementById('socialChartCard').classList.remove('hidden'); drawGrowthChart(audits); }
+  else document.getElementById('socialChartCard').classList.add('hidden');
+}
+function drawGrowthChart(audits) {
+  var canvas = document.getElementById('growthChart'); if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.offsetWidth || 600; canvas.width = W; canvas.height = 130;
+  ctx.clearRect(0,0,W,130);
+  var followers = audits.map(function(a){ return a.followers; });
+  var dates     = audits.map(function(a){ return a.date.slice(5); });
+  var minF = Math.min.apply(null,followers), maxF = Math.max.apply(null,followers), range = maxF-minF||1;
+  var pad = {t:14,b:26,l:10,r:10}, cW = W-pad.l-pad.r, cH = 130-pad.t-pad.b;
+  var step = cW/(followers.length-1);
+  var pts = followers.map(function(f,i){ return {x:pad.l+i*step, y:pad.t+cH-((f-minF)/range)*cH}; });
+  var grad = ctx.createLinearGradient(0,pad.t,0,pad.t+cH);
+  grad.addColorStop(0,'rgba(109,40,217,.35)'); grad.addColorStop(1,'rgba(109,40,217,.02)');
+  ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+  pts.slice(1).forEach(function(p){ ctx.lineTo(p.x,p.y); });
+  ctx.lineTo(pts[pts.length-1].x,pad.t+cH); ctx.lineTo(pts[0].x,pad.t+cH);
+  ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+  pts.slice(1).forEach(function(p){ ctx.lineTo(p.x,p.y); });
+  ctx.strokeStyle='#7c3aed'; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
+  ctx.font='10px DM Mono,monospace'; ctx.textAlign='center';
+  pts.forEach(function(p,i){
+    ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2);
+    ctx.fillStyle = i===pts.length-1?'#a78bfa':'#7c3aed'; ctx.fill();
+    ctx.fillStyle='rgba(136,136,168,.7)'; ctx.fillText(dates[i],p.x,128);
+    if (i===pts.length-1){ ctx.fillStyle='#a78bfa'; ctx.fillText(fmtN(followers[i]),p.x,p.y-10); }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// FULL RENDER
+// ══════════════════════════════════════════════════
+function renderAll() {
+  renderProjectSwitcher();
+  renderHeader();
+  renderCommandStats();
+  renderUpcoming();
+  renderSpotifyWidget();
+  renderCalendar();
+  renderTimeline();
+  renderCampaignSteps();
+  renderStrategyIndex();
+  renderSplits();
+  renderBudget();
+  renderOutreach();
+  renderSocialAudit();
+}
+
+// ══════════════════════════════════════════════════
+// TAB / INNER TAB
+// ══════════════════════════════════════════════════
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(b){
+    if (b.getAttribute('onclick') === "switchTab('" + id + "')") b.classList.add('active');
+  });
+  if (id==='calendar') renderCalendar();
+  if (id==='timeline') renderTimeline();
+  if (id==='campaign') renderCampaignSteps();
+  if (id==='index')    renderStrategyIndex();
+}
+function switchInnerTab(id, btn) {
+  document.querySelectorAll('.inner-tab-content').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.inner-tab').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+function exportData() {
+  var b = new Blob([JSON.stringify(app,null,2)],{type:'application/json'});
+  var a = document.createElement('a'); a.href = URL.createObjectURL(b);
+  a.download = 'launch-command-' + P().name.replace(/\s+/g,'-') + '.json'; a.click();
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+  loadApp(); loadProjectIntoUI(); renderAll();
+  document.getElementById('projectName').addEventListener('change', function(e){
+    P().name = e.target.value; saveApp(); renderProjectSwitcher(); document.getElementById('activeProjectLabel').textContent = P().name;
+  });
+  document.getElementById('releaseDate').addEventListener('change', function(e){
+    P().releaseDate = e.target.value; saveApp(); renderAll();
+  });
+  document.getElementById('secretInput').addEventListener('change', function(e){
+    P().secret = e.target.value; saveApp();
+  });
+  if (!document.getElementById('spotifySyncDate').value)
+    document.getElementById('spotifySyncDate').value = new Date().toISOString().split('T')[0];
+});
+</script>
+</body>
+</html>
